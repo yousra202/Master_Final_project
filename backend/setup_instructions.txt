@@ -1,0 +1,17 @@
+# Database Setup Instructions
+
+1. Start XAMPP and ensure MySQL service is running
+2. Create a new database named 'medical_portal'
+3. Run the following Django commands to set up the database:
+
+# Create migrations
+python manage.py makemigrations
+
+# Apply migrations
+python manage.py migrate
+
+# Create a superuser (optional)
+python manage.py createsuperuser
+
+# Run the development server
+python manage.py runserver

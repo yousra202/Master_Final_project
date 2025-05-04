@@ -1,0 +1,57 @@
+.diagnostic-section {
+    background-color: var(--white);
+    padding: 80px 0;
+    width: 100%;
+  }
+  
+  .diagnostic-container {
+    max-width: 800px;
+    margin: 0 auto;
+    text-align: center;
+  }
+  
+  .diagnostic-box {
+    border: 2px dashed #ccc;
+    border-radius: 10px;
+    padding: 40px;
+    margin: 30px 0;
+    cursor: pointer;
+    transition: all 0.3s;
+  }
+  
+  .diagnostic-box:hover {
+    border-color: var(--primary);
+    background-color: #f8f9fa;
+  }
+  
+  .upload-icon {
+    font-size: 50px;
+    color: var(--primary);
+    margin-bottom: 20px;
+  }
+  
+  .upload-btn {
+    background-color: var(--primary);
+    color: white;
+    padding: 12px 30px;
+    border-radius: 5px;
+    display: inline-block;
+    margin-top: 20px;
+    font-weight: 500;
+    transition: background-color 0.3s;
+  }
+  
+  .upload-btn:hover {
+    background-color: var(--primary-dark);
+  }
+  
+  @media (max-width: 768px) {
+    .diagnostic-box {
+      padding: 30px 20px;
+    }
+  
+    .diagnostic-section {
+      padding: 60px 0;
+    }
+  }
+  
