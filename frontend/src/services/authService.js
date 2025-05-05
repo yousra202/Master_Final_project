@@ -45,6 +45,9 @@ export const logout = () => {
   localStorage.removeItem("refresh_token")
   localStorage.removeItem("user_type")
   localStorage.removeItem("username")
+
+  // Redirection vers la page d'accueil
+  window.location.href = "/"
 }
 
 // Get current user

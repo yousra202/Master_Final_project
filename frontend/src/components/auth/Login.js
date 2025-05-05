@@ -34,8 +34,10 @@ const Login = () => {
 
       if (response.user_type === "doctor") {
         navigate("/doctor/dashboard")
-      } else {
+      } else if (response.user_type === "patient") {
         navigate("/patient/dashboard")
+      } else if (response.user_type === "admin") {
+        navigate("/admin/dashboard")
       }
     } catch (err) {
       setError(err.detail || "Invalid credentials. Please try again.")

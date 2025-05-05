@@ -9,6 +9,12 @@ import HomePage from "./pages/HomePage"
 import ProtectedRoute from "./components/common/ProtectedRoute"
 import "./styles/globals.css"
 
+
+import AdminLayout from "./components/admin/AdminLayout"
+import Dashboard from "./components/admin/Dashboard"
+import DoctorManagement from "./components/admin/DoctorManagement"
+
+
 function App() {
   return (
     <Routes>
@@ -16,6 +22,8 @@ function App() {
       <Route path="/register/doctor" element={<DoctorRegistration />} />
       <Route path="/register/patient" element={<PatientRegistration />} />
       <Route path="/login" element={<Login />} />
+
+      {/* Routes médecin */}
       <Route
         path="/doctor/dashboard"
         element={
@@ -32,6 +40,8 @@ function App() {
           </ProtectedRoute>
         }
       />
+
+      {/* Routes patient */}
       <Route
         path="/patient/dashboard"
         element={
@@ -40,7 +50,23 @@ function App() {
           </ProtectedRoute>
         }
       />
-      {/* Add placeholder routes for other menu items */}
+
+      {/* Routes administrateur */}
+      <Route
+        path="/admin"
+        element={
+          <ProtectedRoute userType="admin">
+            <AdminLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route path="dashboard" element={<Dashboard />} />
+        <Route path="doctors" element={<DoctorManagement />} />
+        <Route path="patients" element={<div>Gestion des patients (à venir)</div>} />
+        <Route path="settings" element={<div>Paramètres (à venir)</div>} />
+      </Route>
+
+      {/* Routes placeholder pour les autres éléments du menu */}
       <Route
         path="/doctor/appointments"
         element={

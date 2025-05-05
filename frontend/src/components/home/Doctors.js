@@ -1,49 +1,96 @@
+"use client"
+
+import { useState, useEffect } from "react"
+import ProfileInitials from "../common/ProfileInitials"
 import "./Doctors.css"
 
 const Doctors = () => {
-  const doctors = [
-    {
-      id: 1,
-      name: "Dr. Ahmed Benali",
-      specialty: "Dentiste",
-      rating: 4.5,
-      reviews: 24,
-      location: "Casablanca",
-      image: "https://images.unsplash.com/photo-1559839734-2b71ea197ec2?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
-    },
-    {
-      id: 2,
-      name: "Dr. Fatima Zahra",
-      specialty: "Dermatologue",
-      rating: 4.0,
-      reviews: 18,
-      location: "Rabat",
-      image:
-        "https://images.unsplash.com/photo-1594824476967-48c8b964273f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
-    },
-    {
-      id: 3,
-      name: "Dr. Karim El Mansouri",
-      specialty: "Pédiatre",
-      rating: 5.0,
-      reviews: 32,
-      location: "Marrakech",
-      image:
-        "https://images.unsplash.com/photo-1622253692010-333f2da6031d?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
-    },
-    {
-      id: 4,
-      name: "Dr. Leila Amrani",
-      specialty: "Gynécologue",
-      rating: 4.5,
-      reviews: 27,
-      location: "Tanger",
-      image:
-        "https://images.unsplash.com/photo-1651008376811-b90baee60c1f?ixlib=rb-1.2.1&auto=format&fit=crop&w=500&q=60",
-    },
-  ]
+  const [doctors, setDoctors] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(null)
 
-  const renderStars = (rating) => {
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        setLoading(true)
+        console.log("Fetching doctors from API...")
+        // Fetch doctors directly from the API
+        const response = await fetch("http://localhost:8000/api/doctors/", {
+          headers: {
+            Accept: "application/json",
+            "Content-Type": "application/json",
+          },
+        })
+
+        if (!response.ok) {
+          console.error(`API responded with status: ${response.status} ${response.statusText}`)
+          const errorData = await response.json().catch(() => ({}))
+          throw new Error(errorData.detail || `Erreur API: ${response.status} ${response.statusText}`)
+        }
+
+        const data = await response.json()
+        console.log("Doctors data received:", data)
+        setDoctors(data)
+      } catch (err) {
+        console.error("Error fetching doctors:", err)
+        setError(
+          `Erreur de connexion au serveur: ${err.message}. Vérifiez que le serveur Django est en cours d'exécution sur le port 8000.`,
+        )
+
+        if (err.message.includes("404")) {
+          console.log("Utilisation des données fictives de secours...")
+          // Données fictives en cas d'échec de l'API
+          const mockDoctors = [
+            {
+              id: 1,
+              user: {
+                username: "Ahmed Benali",
+                email: "ahmed.benali@example.com",
+              },
+              specialty: "dentiste",
+              license_number: "DEN12345",
+              description: "Dentiste avec 10 ans d'expérience, spécialisé en orthodontie.",
+              address: "Casablanca",
+              profile_picture: null,
+            },
+            {
+              id: 2,
+              user: {
+                username: "Fatima Zahra",
+                email: "fatima.zahra@example.com",
+              },
+              specialty: "dermatologue",
+              license_number: "DER54321",
+              description: "Dermatologue spécialisée dans le traitement de l'acné et des maladies de la peau.",
+              address: "Rabat",
+              profile_picture: null,
+            },
+            {
+              id: 3,
+              user: {
+                username: "Karim El Mansouri",
+                email: "karim.elmansouri@example.com",
+              },
+              specialty: "pédiatre",
+              license_number: "PED98765",
+              description: "Pédiatre avec une expertise particulière dans le développement de l'enfant.",
+              address: "Marrakech",
+              profile_picture: null,
+            },
+          ]
+          setDoctors(mockDoctors)
+          setLoading(false)
+          return
+        }
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDoctors()
+  }, [])
+
+  const renderStars = (rating = 4.5) => {
     const stars = []
     const fullStars = Math.floor(rating)
     const hasHalfStar = rating % 1 !== 0
@@ -64,6 +111,52 @@ const Doctors = () => {
     return stars
   }
 
+  if (loading) {
+    return (
+      <section className="doctors">
+        <div className="container">
+          <div className="section-title">
+            <h2>Nos Médecins</h2>
+            <p>Découvrez nos médecins spécialistes</p>
+          </div>
+          <div className="loading-spinner-container">
+            <div className="loading-spinner"></div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
+  if (error) {
+    return (
+      <section className="doctors">
+        <div className="container">
+          <div className="section-title">
+            <h2>Nos Médecins</h2>
+            <p>Découvrez nos médecins spécialistes</p>
+          </div>
+          <div className="error-container">
+            <div className="error-message">{error}</div>
+            <div className="connection-tips">
+              <h4>Conseils de dépannage:</h4>
+              <ul>
+                <li>Vérifiez que le serveur Django est démarré sur le port 8000</li>
+                <li>Assurez-vous que MySQL/XAMPP est en cours d'exécution</li>
+                <li>
+                  Vérifiez les migrations Django avec <code>python manage.py migrate</code>
+                </li>
+                <li>Créez un médecin dans l'interface d'administration Django</li>
+              </ul>
+              <button className="btn btn-primary retry-btn" onClick={() => window.location.reload()}>
+                Réessayer
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+    )
+  }
+
   return (
     <section className="doctors">
       <div className="container">
@@ -72,26 +165,43 @@ const Doctors = () => {
           <p>Découvrez nos médecins spécialistes</p>
         </div>
 
-        <div className="doctors-grid">
-          {doctors.map((doctor) => (
-            <div className="doctor-card" key={doctor.id}>
-              <div className="doctor-img" style={{ backgroundImage: `url(${doctor.image})` }}></div>
-              <div className="doctor-info">
-                <h3>{doctor.name}</h3>
-                <span className="doctor-specialty">{doctor.specialty}</span>
-                <div className="doctor-rating">
-                  {renderStars(doctor.rating)}
-                  <span>({doctor.reviews})</span>
+        {doctors.length === 0 ? (
+          <div className="no-doctors-message">
+            Aucun médecin n'est disponible pour le moment. Veuillez revenir plus tard.
+          </div>
+        ) : (
+          <div className="doctors-grid">
+            {doctors.map((doctor) => (
+              <div className="doctor-card" key={doctor.id}>
+                {doctor.profile_picture ? (
+                  <div
+                    className="doctor-img"
+                    style={{ backgroundImage: `url(http://localhost:8000${doctor.profile_picture})` }}
+                  ></div>
+                ) : (
+                  <div className="doctor-initials">
+                    <ProfileInitials name={doctor.user.username} size={80} />
+                  </div>
+                )}
+                <div className="doctor-info">
+                  <h3>Dr. {doctor.user.username}</h3>
+                  <span className="doctor-specialty">
+                    {doctor.specialty.charAt(0).toUpperCase() + doctor.specialty.slice(1)}
+                  </span>
+                  <div className="doctor-rating">
+                    {renderStars()}
+                    <span>(24)</span>
+                  </div>
+                  <div className="doctor-location">
+                    <i className="fas fa-map-marker-alt"></i>
+                    <span>{doctor.address || "Non spécifié"}</span>
+                  </div>
+                  <button className="btn btn-primary">Prendre RDV</button>
                 </div>
-                <div className="doctor-location">
-                  <i className="fas fa-map-marker-alt"></i>
-                  <span>{doctor.location}</span>
-                </div>
-                <button className="btn btn-primary">Prendre RDV</button>
               </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   )

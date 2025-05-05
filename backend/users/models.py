@@ -14,12 +14,14 @@ class UserManager(BaseUserManager):
     def create_superuser(self, username, email, password=None, **extra_fields):
         extra_fields.setdefault('is_staff', True)
         extra_fields.setdefault('is_superuser', True)
+        extra_fields.setdefault('user_type', 'admin')
         return self.create_user(username, email, password, **extra_fields)
 
 class User(AbstractUser):
     USER_TYPE_CHOICES = (
         ('doctor', 'Doctor'),
         ('patient', 'Patient'),
+        ('admin', 'Admin'),
     )
     user_type = models.CharField(max_length=10, choices=USER_TYPE_CHOICES)
     phone = models.CharField(max_length=15, blank=True)
@@ -42,6 +44,7 @@ class Doctor(models.Model):
     consultation_duration = models.IntegerField(default=30)
     notifications_settings = models.JSONField(default=dict, blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
+    is_verified = models.BooleanField(default=False)
     
     def __str__(self):
         return f"Dr. {self.user.username}"
@@ -49,6 +52,34 @@ class Doctor(models.Model):
 class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='patient_profile')
     address = models.TextField()
+    is_verified = models.BooleanField(default=False)
     
     def __str__(self):
         return self.user.username
+
+class AdminProfile(models.Model):
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='admin_profile')
+    role = models.CharField(max_length=50, default="Admin")
+    permissions = models.JSONField(default=dict, blank=True, null=True)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.role}"
+
+class ActivityLog(models.Model):
+    ACTION_CHOICES = (
+        ('account_validation', 'Validation de compte'),
+        ('account_rejection', 'Rejet de compte'),
+        ('config_change', 'Modification de configuration'),
+        ('admin_creation', 'Création d\'administrateur'),
+        ('login', 'Connexion'),
+        ('logout', 'Déconnexion'),
+        ('other', 'Autre'),
+    )
+    
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='activities')
+    action = models.CharField(max_length=50, choices=ACTION_CHOICES)
+    details = models.TextField(blank=True, null=True)
+    timestamp = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.action} - {self.timestamp}"

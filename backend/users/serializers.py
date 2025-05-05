@@ -1,6 +1,6 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Doctor, Patient
+from .models import Doctor, Patient, AdminProfile, ActivityLog
 
 User = get_user_model()
 
@@ -40,7 +40,8 @@ class DoctorRegistrationSerializer(serializers.Serializer):
         doctor_data = {
             'user': user,
             'license_number': validated_data['license_number'],
-            'specialty': validated_data['specialty']
+            'specialty': validated_data['specialty'],
+            'is_verified': False  # Par défaut, les médecins doivent être vérifiés
         }
         
         Doctor.objects.create(**doctor_data)
@@ -80,7 +81,8 @@ class PatientRegistrationSerializer(serializers.Serializer):
         
         patient_data = {
             'user': user,
-            'address': validated_data['address']
+            'address': validated_data['address'],
+            'is_verified': True  # Les patients sont vérifiés automatiquement
         }
         
         Patient.objects.create(**patient_data)
@@ -98,11 +100,25 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
         model = Doctor
         fields = ['id', 'user', 'license_number', 'specialty', 'description', 'address', 
                  'other_specialties', 'availability', 'consultation_duration', 
-                 'notifications_settings', 'profile_picture']
+                 'notifications_settings', 'profile_picture', 'is_verified']
 
 class PatientProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     
     class Meta:
         model = Patient
-        fields = ['id', 'user', 'address']
+        fields = ['id', 'user', 'address', 'is_verified']
+
+class AdminProfileSerializer(serializers.ModelSerializer):
+    user = UserSerializer()
+    
+    class Meta:
+        model = AdminProfile
+        fields = ['id', 'user', 'role', 'permissions']
+
+class ActivityLogSerializer(serializers.ModelSerializer):
+    user = UserSerializer(read_only=True)
+    
+    class Meta:
+        model = ActivityLog
+        fields = ['id', 'user', 'action', 'details', 'timestamp']

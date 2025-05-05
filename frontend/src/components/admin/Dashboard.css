@@ -1,0 +1,331 @@
+.admin-dashboard {
+    width: 100%;
+  }
+  
+  .page-title {
+    font-size: 1.5rem;
+    font-weight: 600;
+    color: var(--admin-text);
+    margin-bottom: 1.5rem;
+  }
+  
+  .error-alert {
+    background-color: rgba(239, 68, 68, 0.1);
+    color: var(--admin-danger);
+    padding: 1rem;
+    border-radius: 0.5rem;
+    margin-bottom: 1.5rem;
+    border-left: 4px solid var(--admin-danger);
+  }
+  
+  /* Stats Grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  
+  .stat-card {
+    background-color: var(--admin-card-bg);
+    border-radius: 0.5rem;
+    padding: 1.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+  }
+  
+  .stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  }
+  
+  .stat-icon {
+    width: 3rem;
+    height: 3rem;
+    border-radius: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+  }
+  
+  .stat-icon i {
+    font-size: 1.5rem;
+    color: white;
+  }
+  
+  .doctor-icon {
+    background-color: var(--admin-primary);
+  }
+  
+  .pending-icon {
+    background-color: var(--admin-warning);
+  }
+  
+  .patient-icon {
+    background-color: var(--admin-success);
+  }
+  
+  .appointment-icon {
+    background-color: var(--admin-info);
+  }
+  
+  .stat-content {
+    flex: 1;
+  }
+  
+  .stat-content h3 {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: var(--admin-text-light);
+    margin: 0 0 0.5rem 0;
+  }
+  
+  .stat-value {
+    font-size: 1.75rem;
+    font-weight: 700;
+    color: var(--admin-text);
+    margin-bottom: 0.25rem;
+  }
+  
+  .stat-label {
+    font-size: 0.75rem;
+    color: var(--admin-text-light);
+  }
+  
+  /* Dashboard Card */
+  .dashboard-card {
+    background-color: var(--admin-card-bg);
+    border-radius: 0.5rem;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-bottom: 1.5rem;
+    overflow: hidden;
+  }
+  
+  .card-header {
+    padding: 1.25rem 1.5rem;
+    border-bottom: 1px solid var(--admin-border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  
+  .card-header h2 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--admin-text);
+    margin: 0;
+  }
+  
+  .badge {
+    background-color: var(--admin-primary);
+    color: white;
+    font-size: 0.75rem;
+    font-weight: 600;
+    padding: 0.25rem 0.5rem;
+    border-radius: 9999px;
+  }
+  
+  /* Table */
+  .table-responsive {
+    overflow-x: auto;
+  }
+  
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+  
+  .data-table th {
+    background-color: rgba(241, 245, 249, 0.5);
+    color: var(--admin-text-light);
+    font-weight: 600;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 0.75rem 1.5rem;
+    text-align: left;
+    border-bottom: 1px solid var(--admin-border);
+  }
+  
+  .data-table td {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--admin-border);
+    color: var(--admin-text);
+    font-size: 0.875rem;
+  }
+  
+  .data-table tr:last-child td {
+    border-bottom: none;
+  }
+  
+  .data-table tr:hover td {
+    background-color: rgba(241, 245, 249, 0.5);
+  }
+  
+  .actions-cell {
+    white-space: nowrap;
+  }
+  
+  .action-btn {
+    background: none;
+    border: none;
+    width: 2rem;
+    height: 2rem;
+    border-radius: 0.25rem;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    margin-right: 0.25rem;
+  }
+  
+  .validate-btn {
+    color: var(--admin-success);
+  }
+  
+  .validate-btn:hover {
+    background-color: rgba(16, 185, 129, 0.1);
+  }
+  
+  .reject-btn {
+    color: var(--admin-danger);
+  }
+  
+  .reject-btn:hover {
+    background-color: rgba(239, 68, 68, 0.1);
+  }
+  
+  .view-btn {
+    color: var(--admin-info);
+  }
+  
+  .view-btn:hover {
+    background-color: rgba(59, 130, 246, 0.1);
+  }
+  
+  /* Activity List */
+  .activity-list {
+    padding: 1rem 0;
+  }
+  
+  .activity-item {
+    display: flex;
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid var(--admin-border);
+  }
+  
+  .activity-item:last-child {
+    border-bottom: none;
+  }
+  
+  .activity-icon {
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: 50%;
+    background-color: rgba(79, 70, 229, 0.1);
+    color: var(--admin-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-right: 1rem;
+    flex-shrink: 0;
+  }
+  
+  .activity-content {
+    flex: 1;
+  }
+  
+  .activity-header {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 0.25rem;
+  }
+  
+  .activity-user {
+    font-weight: 600;
+    color: var(--admin-text);
+  }
+  
+  .activity-time {
+    font-size: 0.75rem;
+    color: var(--admin-text-light);
+  }
+  
+  .activity-details {
+    font-size: 0.875rem;
+    color: var(--admin-text);
+  }
+  
+  /* Empty State */
+  .empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+    color: var(--admin-text-light);
+  }
+  
+  .empty-state i {
+    font-size: 3rem;
+    margin-bottom: 1rem;
+    color: rgba(100, 116, 139, 0.2);
+  }
+  
+  .empty-state p {
+    font-size: 0.875rem;
+  }
+  
+  /* Loading */
+  .dashboard-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1.5rem;
+  }
+  
+  .spinner {
+    width: 3rem;
+    height: 3rem;
+    border: 3px solid rgba(79, 70, 229, 0.1);
+    border-radius: 50%;
+    border-top-color: var(--admin-primary);
+    animation: spin 1s linear infinite;
+    margin-bottom: 1rem;
+  }
+  
+  @keyframes spin {
+    to {
+      transform: rotate(360deg);
+    }
+  }
+  
+  /* Responsive */
+  @media (max-width: 992px) {
+    .stats-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+  
+  @media (max-width: 768px) {
+    .stats-grid {
+      grid-template-columns: 1fr;
+    }
+  
+    .data-table th,
+    .data-table td {
+      padding: 0.75rem 1rem;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .activity-time {
+      display: none;
+    }
+  }
+  

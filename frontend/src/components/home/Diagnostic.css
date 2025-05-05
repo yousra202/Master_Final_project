@@ -45,13 +45,33 @@
     background-color: var(--primary-dark);
   }
   
+  @media (max-width: 992px) {
+    .diagnostic-section {
+      padding: 60px 0;
+    }
+  
+    .diagnostic-container {
+      max-width: 90%;
+    }
+  }
+  
   @media (max-width: 768px) {
     .diagnostic-box {
       padding: 30px 20px;
     }
   
     .diagnostic-section {
-      padding: 60px 0;
+      padding: 40px 0;
+    }
+  }
+  
+  @media (max-width: 576px) {
+    .diagnostic-box {
+      padding: 20px 15px;
+    }
+  
+    .upload-icon {
+      font-size: 40px;
     }
   }
   
