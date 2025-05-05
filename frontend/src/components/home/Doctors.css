@@ -75,6 +75,35 @@
   margin-right: 0.3125rem;
 }
 
+.doctor-consultation-types {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.9375rem;
+}
+
+.consultation-type {
+  font-size: 0.75rem;
+  padding: 0.25rem 0.5rem;
+  border-radius: 1rem;
+  display: flex;
+  align-items: center;
+}
+
+.consultation-type i {
+  margin-right: 0.25rem;
+}
+
+.consultation-type.physical {
+  background-color: #e6f7ff;
+  color: #0070f3;
+}
+
+.consultation-type.online {
+  background-color: #e6ffe6;
+  color: #00a300;
+}
+
 .doctor-info .btn {
   margin-top: auto;
 }

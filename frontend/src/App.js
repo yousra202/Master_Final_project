@@ -9,11 +9,13 @@ import HomePage from "./pages/HomePage"
 import ProtectedRoute from "./components/common/ProtectedRoute"
 import "./styles/globals.css"
 
-
+import DoctorAvailability from "./components/dashboard/doctor/DoctorAvailability"
+import DoctorAppointments from "./components/dashboard/doctor/DoctorAppointments"
+import PatientAppointments from "./components/dashboard/PatientAppointments"
+import BookAppointment from "./components/appointments/BookAppointment"
 import AdminLayout from "./components/admin/AdminLayout"
 import Dashboard from "./components/admin/Dashboard"
 import DoctorManagement from "./components/admin/DoctorManagement"
-
 
 function App() {
   return (
@@ -40,6 +42,22 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/doctor/availability"
+        element={
+          <ProtectedRoute userType="doctor">
+            <DoctorAvailability />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/doctor/appointments"
+        element={
+          <ProtectedRoute userType="doctor">
+            <DoctorAppointments />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Routes patient */}
       <Route
@@ -47,6 +65,22 @@ function App() {
         element={
           <ProtectedRoute userType="patient">
             <PatientDashboard />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/patient/appointments"
+        element={
+          <ProtectedRoute userType="patient">
+            <PatientAppointments />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/book-appointment/:doctorId"
+        element={
+          <ProtectedRoute userType="patient">
+            <BookAppointment />
           </ProtectedRoute>
         }
       />
@@ -67,14 +101,6 @@ function App() {
       </Route>
 
       {/* Routes placeholder pour les autres éléments du menu */}
-      <Route
-        path="/doctor/appointments"
-        element={
-          <ProtectedRoute userType="doctor">
-            <div>Appointments Page (Coming Soon)</div>
-          </ProtectedRoute>
-        }
-      />
       <Route
         path="/doctor/patients"
         element={

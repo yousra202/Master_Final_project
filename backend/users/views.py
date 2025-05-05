@@ -4,16 +4,22 @@ from rest_framework.response import Response
 from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
+from django.db import models
 import json
+from datetime import datetime, timedelta
 from .serializers import (
     DoctorRegistrationSerializer, 
     PatientRegistrationSerializer,
     DoctorProfileSerializer,
     PatientProfileSerializer,
     AdminProfileSerializer,
-    ActivityLogSerializer
+    ActivityLogSerializer,
+    ConsultationSerializer,
+    ConsultationCreateSerializer,
+    ReviewSerializer,
+    PrescriptionSerializer
 )
-from .models import Doctor, Patient, User, AdminProfile, ActivityLog
+from .models import Doctor, Patient, User, AdminProfile, ActivityLog, Consultation, MedicalRecord, Prescription, Review
 import logging
 
 # Set up logging
@@ -130,7 +136,11 @@ class DoctorProfileView(APIView):
                     "onlineConsultations": False,
                     "patientMessages": True
                 },
-                is_verified=False
+                is_verified=False,
+                offers_online_consultation=False,
+                offers_physical_consultation=True,
+                online_consultation_fee=0.00,
+                physical_consultation_fee=0.00
             )
             serializer = DoctorProfileSerializer(doctor)
             return Response(serializer.data)
@@ -162,6 +172,21 @@ class DoctorProfileView(APIView):
             if 'address' in request.data:
                 doctor.address = request.data.get('address')
             
+            # Update consultation options - Fix boolean conversion
+            if 'offers_online_consultation' in request.data:
+                value = request.data.get('offers_online_consultation')
+                doctor.offers_online_consultation = value == 'true' or value == True
+            
+            if 'offers_physical_consultation' in request.data:
+                value = request.data.get('offers_physical_consultation')
+                doctor.offers_physical_consultation = value == 'true' or value == True
+            
+            if 'online_consultation_fee' in request.data:
+                doctor.online_consultation_fee = request.data.get('online_consultation_fee')
+            
+            if 'physical_consultation_fee' in request.data:
+                doctor.physical_consultation_fee = request.data.get('physical_consultation_fee')
+            
             # Handle JSON fields
             if 'other_specialties' in request.data:
                 try:
@@ -169,11 +194,25 @@ class DoctorProfileView(APIView):
                 except:
                     doctor.other_specialties = request.data.get('other_specialties')
             
+            # Fix availability and consultation duration handling
             if 'availability' in request.data:
                 try:
-                    doctor.availability = json.loads(request.data.get('availability'))
-                except:
+                    availability_data = json.loads(request.data.get('availability'))
+                    doctor.availability = availability_data
+                    
+                    # Also update consultation_duration from the availability object if present
+                    if 'consultationDuration' in availability_data:
+                        doctor.consultation_duration = int(availability_data['consultationDuration'])
+                except Exception as e:
+                    print(f"Error parsing availability: {e}")
                     doctor.availability = request.data.get('availability')
+            
+            # Directly update consultation_duration if provided
+            if 'consultation_duration' in request.data:
+                try:
+                    doctor.consultation_duration = int(request.data.get('consultation_duration'))
+                except:
+                    pass
             
             if 'notifications' in request.data:
                 try:
@@ -209,7 +248,12 @@ class DoctorProfileView(APIView):
             
             if 'availability' in request.data:
                 try:
-                    doctor.availability = json.loads(request.data.get('availability'))
+                    availability_data = json.loads(request.data.get('availability'))
+                    doctor.availability = availability_data
+                    
+                    # Also update consultation_duration from the availability object if present
+                    if 'consultationDuration' in availability_data:
+                        doctor.consultation_duration = int(availability_data['consultationDuration'])
                 except:
                     doctor.availability = request.data.get('availability')
             
@@ -529,3 +573,288 @@ class ActivityLogView(APIView):
         logs = ActivityLog.objects.all().order_by('-timestamp')
         serializer = ActivityLogSerializer(logs, many=True)
         return Response(serializer.data)
+
+# New views for consultations
+
+class DoctorAvailabilityView(APIView):
+    permission_classes = [AllowAny]
+    
+    def get(self, request, doctor_id):
+        try:
+            doctor = Doctor.objects.get(id=doctor_id, is_verified=True)
+            
+            # Get the doctor's availability
+            availability = doctor.availability
+            
+            # Get the doctor's confirmed consultations for the next 30 days
+            today = datetime.now().date()
+            thirty_days_later = today + timedelta(days=30)
+            
+            confirmed_consultations = Consultation.objects.filter(
+                doctor=doctor,
+                date__gte=today,
+                date__lte=thirty_days_later,
+                status='confirmed'
+            ).values('date', 'start_time', 'end_time')
+            
+            # Convert to a format that's easier to work with on the frontend
+            booked_slots = {}
+            for consultation in confirmed_consultations:
+                date_str = consultation['date'].strftime('%Y-%m-%d')
+                if date_str not in booked_slots:
+                    booked_slots[date_str] = []
+                
+                booked_slots[date_str].append({
+                    'start': consultation['start_time'].strftime('%H:%M'),
+                    'end': consultation['end_time'].strftime('%H:%M')
+                })
+            
+            response_data = {
+                'doctor_id': doctor.id,
+                'doctor_name': doctor.user.username,
+                'availability': availability,
+                'booked_slots': booked_slots,
+                'consultation_duration': doctor.consultation_duration,
+                'offers_online_consultation': doctor.offers_online_consultation,
+                'offers_physical_consultation': doctor.offers_physical_consultation,
+                'online_consultation_fee': doctor.online_consultation_fee,
+                'physical_consultation_fee': doctor.physical_consultation_fee
+            }
+            
+            return Response(response_data)
+        except Doctor.DoesNotExist:
+            return Response({'detail': 'Doctor not found'}, status=status.HTTP_404_NOT_FOUND)
+
+class ConsultationListView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request):
+        user = request.user
+        
+        if user.user_type == 'doctor':
+            try:
+                doctor = Doctor.objects.get(user=user)
+                consultations = Consultation.objects.filter(doctor=doctor).order_by('-date', '-start_time')
+                serializer = ConsultationSerializer(consultations, many=True)
+                return Response(serializer.data)
+            except Doctor.DoesNotExist:
+                return Response({'detail': 'Doctor profile not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        elif user.user_type == 'patient':
+            try:
+                patient = Patient.objects.get(user=user)
+                consultations = Consultation.objects.filter(patient=patient).order_by('-date', '-start_time')
+                serializer = ConsultationSerializer(consultations, many=True)
+                return Response(serializer.data)
+            except Patient.DoesNotExist:
+                return Response({'detail': 'Patient profile not found'}, status=status.HTTP_404_NOT_FOUND)
+        
+        return Response({'detail': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
+    
+    def post(self, request):
+        user = request.user
+        
+        if user.user_type != 'patient':
+            return Response({'detail': 'Only patients can book consultations'}, status=status.HTTP_403_FORBIDDEN)
+        
+        try:
+            patient = Patient.objects.get(user=user)
+            
+            # Add patient to request data
+            request.data['patient'] = patient.id
+            
+            serializer = ConsultationCreateSerializer(data=request.data)
+            if serializer.is_valid():
+                consultation = serializer.save(status='pending')
+                
+                # Create activity log
+                ActivityLog.objects.create(
+                    user=user,
+                    action='appointment_creation',
+                    details=f"Consultation created with Dr. {consultation.doctor.user.username} on {consultation.date} at {consultation.start_time}"
+                )
+                
+                return Response(ConsultationSerializer(consultation).data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except Patient.DoesNotExist:
+            return Response({'detail': 'Patient profile not found'}, status=status.HTTP_404_NOT_FOUND)
+
+class ConsultationDetailView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def get(self, request, pk):
+        try:
+            user = request.user
+            
+            if user.user_type == 'doctor':
+                doctor = Doctor.objects.get(user=user)
+                consultation = Consultation.objects.get(pk=pk, doctor=doctor)
+            elif user.user_type == 'patient':
+                patient = Patient.objects.get(user=user)
+                consultation = Consultation.objects.get(pk=pk, patient=patient)
+            else:
+                return Response({'detail': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
+            
+            serializer = ConsultationSerializer(consultation)
+            return Response(serializer.data)
+        except (Doctor.DoesNotExist, Patient.DoesNotExist, Consultation.DoesNotExist):
+            return Response({'detail': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    def put(self, request, pk):
+        try:
+            user = request.user
+            
+            if user.user_type == 'doctor':
+                doctor = Doctor.objects.get(user=user)
+                consultation = Consultation.objects.get(pk=pk, doctor=doctor)
+                
+                # Doctors can update status, notes, diagnosis, and treatment
+                if 'status' in request.data:
+                    consultation.status = request.data.get('status')
+                    
+                    # Create activity log for status changes
+                    if request.data.get('status') == 'confirmed':
+                        ActivityLog.objects.create(
+                            user=user,
+                            action='appointment_confirmation',
+                            details=f"Consultation with {consultation.patient.user.username} on {consultation.date} at {consultation.start_time} confirmed"
+                        )
+                    elif request.data.get('status') == 'cancelled':
+                        ActivityLog.objects.create(
+                            user=user,
+                            action='appointment_cancellation',
+                            details=f"Consultation with {consultation.patient.user.username} on {consultation.date} at {consultation.start_time} cancelled"
+                        )
+                
+                if 'notes' in request.data:
+                    consultation.notes = request.data.get('notes')
+                if 'diagnosis' in request.data:
+                    consultation.diagnosis = request.data.get('diagnosis')
+                if 'treatment' in request.data:
+                    consultation.treatment = request.data.get('treatment')
+                
+                consultation.save()
+                
+                # Handle prescriptions if provided
+                if 'prescriptions' in request.data:
+                    try:
+                        prescriptions_data = json.loads(request.data.get('prescriptions'))
+                        for prescription_data in prescriptions_data:
+                            Prescription.objects.create(
+                                consultation=consultation,
+                                medication=prescription_data.get('medication', ''),
+                                dosage=prescription_data.get('dosage', ''),
+                                frequency=prescription_data.get('frequency', ''),
+                                duration=prescription_data.get('duration', ''),
+                                notes=prescription_data.get('notes', '')
+                            )
+                    except:
+                        pass
+                
+                serializer = ConsultationSerializer(consultation)
+                return Response(serializer.data)
+            
+            elif user.user_type == 'patient':
+                patient = Patient.objects.get(user=user)
+                consultation = Consultation.objects.get(pk=pk, patient=patient)
+                
+                # Patients can only update symptoms or cancel if status is pending
+                if consultation.status != 'pending':
+                    return Response({'detail': 'Cannot update a consultation that is not pending'}, status=status.HTTP_400_BAD_REQUEST)
+       
+                if 'symptoms' in request.data:
+                    consultation.symptoms = request.data.get('symptoms')
+                
+                if 'status' in request.data and request.data.get('status') == 'cancelled':
+                    consultation.status = 'cancelled'
+                    
+                    # Create activity log for cancellation
+                    ActivityLog.objects.create(
+                        user=user,
+                        action='appointment_cancellation',
+                        details=f"Consultation with Dr. {consultation.doctor.user.username} on {consultation.date} at {consultation.start_time} cancelled by patient"
+                    )
+                
+                consultation.save()
+                serializer = ConsultationSerializer(consultation)
+                return Response(serializer.data)
+            
+            else:
+                return Response({'detail': 'Unauthorized'}, status=status.HTTP_403_FORBIDDEN)
+        
+        except (Doctor.DoesNotExist, Patient.DoesNotExist, Consultation.DoesNotExist):
+            return Response({'detail': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+    
+    def delete(self, request, pk):
+        try:
+            user = request.user
+            
+            if user.user_type == 'patient':
+                patient = Patient.objects.get(user=user)
+                consultation = Consultation.objects.get(pk=pk, patient=patient, status='pending')
+                consultation.delete()
+                return Response(status=status.HTTP_204_NO_CONTENT)
+            else:
+                return Response({'detail': 'Only patients can delete pending consultations'}, status=status.HTTP_403_FORBIDDEN)
+        except (Patient.DoesNotExist, Consultation.DoesNotExist):
+            return Response({'detail': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+
+class PrescriptionView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, consultation_id):
+        try:
+            user = request.user
+            
+            if user.user_type != 'doctor':
+                return Response({'detail': 'Only doctors can create prescriptions'}, status=status.HTTP_403_FORBIDDEN)
+            
+            doctor = Doctor.objects.get(user=user)
+            consultation = Consultation.objects.get(pk=consultation_id, doctor=doctor)
+            
+            serializer = PrescriptionSerializer(data=request.data)
+            if serializer.is_valid():
+                serializer.save(consultation=consultation)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except (Doctor.DoesNotExist, Consultation.DoesNotExist):
+            return Response({'detail': 'Not found'}, status=status.HTTP_404_NOT_FOUND)
+
+class ReviewView(APIView):
+    permission_classes = [IsAuthenticated]
+    
+    def post(self, request, doctor_id):
+        try:
+            user = request.user
+            
+            if user.user_type != 'patient':
+                return Response({'detail': 'Only patients can leave reviews'}, status=status.HTTP_403_FORBIDDEN)
+            
+            patient = Patient.objects.get(user=user)
+            doctor = Doctor.objects.get(pk=doctor_id, is_verified=True)
+            
+            # Check if the patient has had a completed consultation with this doctor
+            has_consultation = Consultation.objects.filter(
+                doctor=doctor,
+                patient=patient,
+                status='completed'
+            ).exists()
+            
+            if not has_consultation:
+                return Response({'detail': 'You can only review doctors after a completed consultation'}, status=status.HTTP_400_BAD_REQUEST)
+            
+            # Check if the patient has already reviewed this doctor
+            existing_review = Review.objects.filter(doctor=doctor, patient=patient).first()
+            if existing_review:
+                # Update existing review
+                serializer = ReviewSerializer(existing_review, data=request.data, partial=True)
+            else:
+                # Create new review
+                serializer = ReviewSerializer(data=request.data)
+            
+            if serializer.is_valid():
+                serializer.save(doctor=doctor, patient=patient)
+                return Response(serializer.data, status=status.HTTP_201_CREATED)
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+        except (Patient.DoesNotExist, Doctor.DoesNotExist):
+            return Response({'detail': 'Not found'}, status=status.HTTP_404_NOT_FOUND)

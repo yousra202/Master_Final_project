@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
-from .models import Doctor, Patient, AdminProfile, ActivityLog
+from django.db import models  # Add this import
+from .models import Doctor, Patient, AdminProfile, ActivityLog, Consultation, MedicalRecord, Prescription, Review
 
 User = get_user_model()
 
@@ -85,7 +86,11 @@ class PatientRegistrationSerializer(serializers.Serializer):
             'is_verified': True  # Les patients sont vérifiés automatiquement
         }
         
-        Patient.objects.create(**patient_data)
+        patient = Patient.objects.create(**patient_data)
+        
+        # Create a medical record for the patient
+        MedicalRecord.objects.create(patient=patient)
+        
         return user
 
 class UserSerializer(serializers.ModelSerializer):
@@ -100,14 +105,16 @@ class DoctorProfileSerializer(serializers.ModelSerializer):
         model = Doctor
         fields = ['id', 'user', 'license_number', 'specialty', 'description', 'address', 
                  'other_specialties', 'availability', 'consultation_duration', 
-                 'notifications_settings', 'profile_picture', 'is_verified']
+                 'notifications_settings', 'profile_picture', 'is_verified',
+                 'offers_online_consultation', 'offers_physical_consultation',
+                 'online_consultation_fee', 'physical_consultation_fee']
 
 class PatientProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
     
     class Meta:
         model = Patient
-        fields = ['id', 'user', 'address', 'is_verified']
+        fields = ['id', 'user', 'address', 'medical_history', 'is_verified']
 
 class AdminProfileSerializer(serializers.ModelSerializer):
     user = UserSerializer()
@@ -122,3 +129,54 @@ class ActivityLogSerializer(serializers.ModelSerializer):
     class Meta:
         model = ActivityLog
         fields = ['id', 'user', 'action', 'details', 'timestamp']
+
+class PrescriptionSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Prescription
+        fields = ['id', 'medication', 'dosage', 'frequency', 'duration', 'notes', 'created_at']
+
+class ConsultationSerializer(serializers.ModelSerializer):
+    doctor = DoctorProfileSerializer(read_only=True)
+    patient = PatientProfileSerializer(read_only=True)
+    prescriptions = PrescriptionSerializer(many=True, read_only=True)
+    
+    class Meta:
+        model = Consultation
+        fields = ['id', 'doctor', 'patient', 'date', 'start_time', 'end_time', 
+                 'consultation_type', 'status', 'notes', 'symptoms', 'diagnosis', 
+                 'treatment', 'created_at', 'updated_at', 'prescriptions']
+
+class ConsultationCreateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Consultation
+        fields = ['doctor', 'patient', 'date', 'start_time', 'end_time', 
+                 'consultation_type', 'symptoms']
+        
+    def validate(self, data):
+        # Check if the time slot is available
+        doctor = data['doctor']
+        date = data['date']
+        start_time = data['start_time']
+        end_time = data['end_time']
+        
+        # Check if there's an existing confirmed consultation at this time
+        existing_consultations = Consultation.objects.filter(
+            doctor=doctor,
+            date=date,
+            status='confirmed'
+        ).filter(
+            # Check for overlapping time slots
+            (models.Q(start_time__lt=end_time) & models.Q(end_time__gt=start_time))
+        )
+        
+        if existing_consultations.exists():
+            raise serializers.ValidationError("This time slot is already booked")
+        
+        return data
+
+class ReviewSerializer(serializers.ModelSerializer):
+    patient = serializers.PrimaryKeyRelatedField(read_only=True)
+    
+    class Meta:
+        model = Review
+        fields = ['id', 'doctor', 'patient', 'consultation', 'rating', 'comment', 'created_at']

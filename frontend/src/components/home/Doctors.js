@@ -1,10 +1,12 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import ProfileInitials from "../common/ProfileInitials"
 import "./Doctors.css"
 
 const Doctors = () => {
+  const navigate = useNavigate()
   const [doctors, setDoctors] = useState([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
@@ -52,6 +54,8 @@ const Doctors = () => {
               description: "Dentiste avec 10 ans d'expérience, spécialisé en orthodontie.",
               address: "Casablanca",
               profile_picture: null,
+              offers_online_consultation: true,
+              offers_physical_consultation: true,
             },
             {
               id: 2,
@@ -64,6 +68,8 @@ const Doctors = () => {
               description: "Dermatologue spécialisée dans le traitement de l'acné et des maladies de la peau.",
               address: "Rabat",
               profile_picture: null,
+              offers_online_consultation: true,
+              offers_physical_consultation: true,
             },
             {
               id: 3,
@@ -76,6 +82,8 @@ const Doctors = () => {
               description: "Pédiatre avec une expertise particulière dans le développement de l'enfant.",
               address: "Marrakech",
               profile_picture: null,
+              offers_online_consultation: false,
+              offers_physical_consultation: true,
             },
           ]
           setDoctors(mockDoctors)
@@ -109,6 +117,23 @@ const Doctors = () => {
     }
 
     return stars
+  }
+
+  const handleBookAppointment = (doctorId) => {
+    const token = localStorage.getItem("token")
+    const userType = localStorage.getItem("user_type")
+
+    if (!token) {
+      navigate("/login")
+      return
+    }
+
+    if (userType !== "patient") {
+      alert("Seuls les patients peuvent prendre rendez-vous.")
+      return
+    }
+
+    navigate(`/book-appointment/${doctorId}`)
   }
 
   if (loading) {
@@ -196,7 +221,21 @@ const Doctors = () => {
                     <i className="fas fa-map-marker-alt"></i>
                     <span>{doctor.address || "Non spécifié"}</span>
                   </div>
-                  <button className="btn btn-primary">Prendre RDV</button>
+                  <div className="doctor-consultation-types">
+                    {doctor.offers_physical_consultation && (
+                      <span className="consultation-type physical">
+                        <i className="fas fa-hospital"></i> Consultation physique
+                      </span>
+                    )}
+                    {doctor.offers_online_consultation && (
+                      <span className="consultation-type online">
+                        <i className="fas fa-video"></i> Consultation en ligne
+                      </span>
+                    )}
+                  </div>
+                  <button className="btn btn-primary" onClick={() => handleBookAppointment(doctor.id)}>
+                    Prendre RDV
+                  </button>
                 </div>
               </div>
             ))}

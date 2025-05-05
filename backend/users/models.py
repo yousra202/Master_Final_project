@@ -45,6 +45,10 @@ class Doctor(models.Model):
     notifications_settings = models.JSONField(default=dict, blank=True, null=True)
     profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
     is_verified = models.BooleanField(default=False)
+    offers_online_consultation = models.BooleanField(default=False)
+    offers_physical_consultation = models.BooleanField(default=True)
+    online_consultation_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+    physical_consultation_fee = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
     
     def __str__(self):
         return f"Dr. {self.user.username}"
@@ -52,10 +56,73 @@ class Doctor(models.Model):
 class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='patient_profile')
     address = models.TextField()
+    medical_history = models.TextField(blank=True, null=True)
     is_verified = models.BooleanField(default=False)
     
     def __str__(self):
         return self.user.username
+
+class MedicalRecord(models.Model):
+    patient = models.OneToOneField(Patient, on_delete=models.CASCADE, related_name='medical_record')
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Medical Record for {self.patient.user.username}"
+
+class Consultation(models.Model):
+    CONSULTATION_TYPE_CHOICES = (
+        ('physical', 'Physical'),
+        ('online', 'Online'),
+    )
+    
+    STATUS_CHOICES = (
+        ('pending', 'Pending'),
+        ('confirmed', 'Confirmed'),
+        ('cancelled', 'Cancelled'),
+        ('completed', 'Completed'),
+    )
+    
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='consultations')
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='consultations')
+    medical_record = models.ForeignKey(MedicalRecord, on_delete=models.CASCADE, related_name='consultations', null=True, blank=True)
+    date = models.DateField()
+    start_time = models.TimeField()
+    end_time = models.TimeField()
+    consultation_type = models.CharField(max_length=10, choices=CONSULTATION_TYPE_CHOICES, default='physical')
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='pending')
+    notes = models.TextField(blank=True, null=True)
+    symptoms = models.TextField(blank=True, null=True)
+    diagnosis = models.TextField(blank=True, null=True)
+    treatment = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return f"Consultation: {self.doctor.user.username} - {self.patient.user.username} on {self.date} at {self.start_time}"
+
+class Prescription(models.Model):
+    consultation = models.ForeignKey(Consultation, on_delete=models.CASCADE, related_name='prescriptions')
+    medication = models.CharField(max_length=100)
+    dosage = models.CharField(max_length=100)
+    frequency = models.CharField(max_length=100)
+    duration = models.CharField(max_length=100)
+    notes = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Prescription for {self.consultation}"
+
+class Review(models.Model):
+    doctor = models.ForeignKey(Doctor, on_delete=models.CASCADE, related_name='reviews')
+    patient = models.ForeignKey(Patient, on_delete=models.CASCADE, related_name='reviews')
+    consultation = models.ForeignKey(Consultation, on_delete=models.SET_NULL, related_name='review', null=True, blank=True)
+    rating = models.IntegerField()
+    comment = models.TextField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    
+    def __str__(self):
+        return f"Review by {self.patient.user.username} for {self.doctor.user.username}"
 
 class AdminProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='admin_profile')
@@ -73,6 +140,9 @@ class ActivityLog(models.Model):
         ('admin_creation', 'Création d\'administrateur'),
         ('login', 'Connexion'),
         ('logout', 'Déconnexion'),
+        ('appointment_creation', 'Création de rendez-vous'),
+        ('appointment_confirmation', 'Confirmation de rendez-vous'),
+        ('appointment_cancellation', 'Annulation de rendez-vous'),
         ('other', 'Autre'),
     )
     
