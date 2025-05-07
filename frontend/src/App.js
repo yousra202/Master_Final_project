@@ -1,4 +1,4 @@
-import { Routes, Route } from "react-router-dom"
+import { Routes, Route, Navigate } from "react-router-dom"
 import DoctorRegistration from "./components/auth/DoctorRegistration"
 import PatientRegistration from "./components/auth/PatientRegistration"
 import Login from "./components/auth/Login"
@@ -16,6 +16,14 @@ import BookAppointment from "./components/appointments/BookAppointment"
 import AdminLayout from "./components/admin/AdminLayout"
 import Dashboard from "./components/admin/Dashboard"
 import DoctorManagement from "./components/admin/DoctorManagement"
+
+
+import PatientMedicalRecord from "./components/medical_records/PatientMedicalRecord"
+import DoctorMedicalRecordView from "./components/medical_records/DoctorMedicalRecordView"
+
+
+
+
 
 function App() {
   return (
@@ -58,6 +66,14 @@ function App() {
           </ProtectedRoute>
         }
       />
+      <Route
+        path="/doctor/medical-records/:recordId"
+        element={
+          <ProtectedRoute userType="doctor">
+            <DoctorMedicalRecordView />
+          </ProtectedRoute>
+        }
+      />
 
       {/* Routes patient */}
       <Route
@@ -73,6 +89,14 @@ function App() {
         element={
           <ProtectedRoute userType="patient">
             <PatientAppointments />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/patient/medical-record"
+        element={
+          <ProtectedRoute userType="patient">
+            <PatientMedicalRecord />
           </ProtectedRoute>
         }
       />
