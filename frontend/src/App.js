@@ -4,7 +4,6 @@ import PatientRegistration from "./components/auth/PatientRegistration"
 import Login from "./components/auth/Login"
 import DoctorDashboard from "./components/dashboard/doctor/DoctorDashboard"
 import DoctorSettings from "./components/dashboard/doctor/DoctorSettings"
-import PatientDashboard from "./components/dashboard/PatientDashboard"
 import HomePage from "./pages/HomePage"
 import ProtectedRoute from "./components/common/ProtectedRoute"
 import "./styles/globals.css"
@@ -76,14 +75,7 @@ function App() {
       />
 
       {/* Routes patient */}
-      <Route
-        path="/patient/dashboard"
-        element={
-          <ProtectedRoute userType="patient">
-            <PatientDashboard />
-          </ProtectedRoute>
-        }
-      />
+      
       <Route
         path="/patient/appointments"
         element={

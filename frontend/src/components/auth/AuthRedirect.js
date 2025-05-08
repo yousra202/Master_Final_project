@@ -8,15 +8,16 @@ const AuthRedirect = () => {
   const navigate = useNavigate()
 
   useEffect(() => {
-    const currentUser = getCurrentUser()
+    const user = getCurrentUser()
 
-    if (currentUser) {
-      if (currentUser.userType === "doctor") {
+    if (user) {
+      if (user.userType === "doctor") {
         navigate("/doctor/dashboard")
-      } else if (currentUser.userType === "patient") {
-        navigate("/patient/dashboard")
-      } else if (currentUser.userType === "admin") {
+      } else if (user.userType === "admin") {
         navigate("/admin/dashboard")
+      } else {
+        // For patients, redirect to home page
+        navigate("/")
       }
     } else {
       navigate("/login")

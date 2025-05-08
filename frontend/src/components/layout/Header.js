@@ -1,12 +1,23 @@
 "use client"
 import { Link, useNavigate } from "react-router-dom"
-import { getCurrentUser } from "../../services/authService"
+import { getCurrentUser, logout } from "../../services/authService"
 import "./Header.css"
-import ProfileDropdown from "../common/ProfileDropdown"
+import ProfileInitials from "../common/ProfileInitials"
+import PatientHeader from "./PatientHeader"
 
 const Header = () => {
   const navigate = useNavigate()
   const currentUser = getCurrentUser()
+
+  const handleLogout = () => {
+    logout()
+    navigate("/login")
+  }
+
+  // If user is a patient, show the PatientHeader
+  if (currentUser && currentUser.userType === "patient") {
+    return <PatientHeader />
+  }
 
   return (
     <header className="main-header">
@@ -19,6 +30,11 @@ const Header = () => {
             {currentUser ? (
               <>
                 <div className="user-welcome">
+                  {currentUser.userType === "doctor" ? (
+                    <ProfileInitials name={currentUser.username} size={40} />
+                  ) : (
+                    <ProfileInitials name={currentUser.username} size={40} bgColor="#3498db" />
+                  )}
                   <span className="welcome-text">Bonjour, {currentUser.username}</span>
                 </div>
                 {currentUser.userType === "doctor" ? (
@@ -30,10 +46,9 @@ const Header = () => {
                     Tableau de bord
                   </Link>
                 )}
-                <ProfileDropdown
-                  user={currentUser}
-                  bgColor={currentUser.userType === "doctor" ? undefined : "#3498db"}
-                />
+                <button onClick={handleLogout} className="btn btn-primary">
+                  Déconnexion
+                </button>
               </>
             ) : (
               <>

@@ -1,92 +1,211 @@
+/* Professional Doctor Profile Styles */
+.sidebar-header {
+  padding: 1.5rem;
+  background: rgba(0, 0, 0, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.doctor-profile-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+}
+
+.doctor-avatar {
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #3498db;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+  margin-bottom: 1rem;
+}
+
+.doctor-details {
+  width: 100%;
+}
+
+.doctor-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: white;
+  margin: 0 0 0.25rem 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.25rem;
+}
+
+.verified-badge {
+  display: inline-flex;
+  align-items: center;
+}
+
+.doctor-specialization {
+  font-size: 0.9rem;
+  color: #ecf0f1;
+  background: rgba(52, 152, 219, 0.2);
+  padding: 0.25rem 0.75rem;
+  border-radius: 1rem;
+  display: inline-block;
+  margin: 0 0 0.75rem 0;
+  font-weight: 500;
+}
+
+.doctor-meta {
+  display: flex;
+  justify-content: center;
+  gap: 1rem;
+  font-size: 0.75rem;
+  color: #bdc3c7;
+}
+
+.meta-item {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.meta-item svg {
+  flex-shrink: 0;
+}
+
+/* For ProfileInitials fallback */
+.profile-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #3498db, #2c3e50);
+  color: white;
+  font-weight: 600;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
 .sidebar {
   position: fixed;
   top: 0;
   left: 0;
   height: 100vh;
-  width: 250px;
-  background-color: var(--sidebar-bg);
-  color: var(--sidebar-text);
+  width: 280px;
+  background-color: var(--primary-color);
+  color: white;
   overflow-y: auto;
   z-index: 1000;
-  transition: all 0.3s ease;
+  transition: transform 0.3s ease;
   box-shadow: 2px 0 10px rgba(0, 0, 0, 0.1);
-  padding: 20px 0;
 }
 
-/* Update sidebar header styles */
 .sidebar-header {
   display: flex;
+  flex-direction: column;
   align-items: center;
-  padding: 20px;
+  padding: 30px 20px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
 }
 
-.sidebar-header h3 {
+.profile-image {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid var(--secondary-color);
+  margin-bottom: 15px;
+}
+
+.doctor-info h3 {
   margin: 0;
   font-size: 1.2rem;
-  color: var(--white);
-  margin-left: 15px;
+  font-weight: 600;
 }
 
-.sidebar-header p {
-  margin: 0;
-  font-size: 0.8rem;
-  color: rgba(255, 255, 255, 0.7);
-  margin-left: 15px;
+.doctor-info p {
+  margin: 5px 0 0;
+  font-size: 0.9rem;
+  opacity: 0.8;
 }
 
 .sidebar-menu {
   padding: 20px 0;
 }
 
-.sidebar-menu a {
-  text-decoration: none;
-  color: inherit;
+.sidebar-menu ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 .menu-item {
   display: flex;
   align-items: center;
-  padding: 12px 20px;
-  color: rgba(255, 255, 255, 0.7);
+  gap: 12px;
+  padding: 12px 25px;
+  color: rgba(255, 255, 255, 0.8);
+  text-decoration: none;
   transition: all 0.3s;
   cursor: pointer;
+  border-left: 4px solid transparent;
 }
 
 .menu-item:hover {
   background-color: rgba(255, 255, 255, 0.1);
-  color: var(--white);
+  color: white;
 }
 
 .menu-item.active {
   background-color: rgba(255, 255, 255, 0.2);
-  color: var(--white);
-  border-left: 4px solid var(--primary);
+  color: white;
+  border-left-color: var(--secondary-color);
 }
 
-.menu-item i {
-  margin-right: 10px;
-  width: 20px;
-  text-align: center;
-  color: rgba(255, 255, 255, 0.7);
+.menu-item svg {
+  flex-shrink: 0;
 }
 
-.menu-item.active i {
-  color: var(--primary);
+.logout-button {
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  color: rgba(255, 255, 255, 0.8);
 }
 
-/* Mobile responsive styles */
+.logout-button:hover {
+  color: #ff6b6b;
+}
+
+.sidebar-loading {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 280px;
+  height: 100vh;
+  background-color: var(--primary-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.loading-spinner {
+  border: 3px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top: 3px solid white;
+  width: 30px;
+  height: 30px;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
 @media (max-width: 768px) {
   .sidebar {
     transform: translateX(-100%);
-    box-shadow: 2px 0 5px rgba(0, 0, 0, 0.1);
   }
-
+  
   .sidebar.open {
     transform: translateX(0);
-  }
-
-  .sidebar-toggle {
-    display: block;
   }
 }

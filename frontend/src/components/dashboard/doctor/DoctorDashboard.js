@@ -6,6 +6,8 @@ import axios from "axios"
 import { logout, getCurrentUser } from "../../../services/authService"
 import "@fortawesome/fontawesome-free/css/all.min.css"
 import "./DoctorDashboard.css"
+import Sidebar from "../../common/Sidebar"
+
 import ProfileInitials from "../../common/ProfileInitials"
 
 const DoctorDashboard = () => {
@@ -15,7 +17,6 @@ const DoctorDashboard = () => {
   const [error, setError] = useState("")
   const [showModal, setShowModal] = useState(false)
   const [selectedPatient, setSelectedPatient] = useState(null)
-  const [activeMenuItem, setActiveMenuItem] = useState("dashboard")
 
   useEffect(() => {
     // Check if user is authenticated and is a doctor
@@ -62,39 +63,7 @@ const DoctorDashboard = () => {
     navigate("/login")
   }
 
-  const handleMenuClick = (menuItem) => {
-    setActiveMenuItem(menuItem)
-
-    // Navigate to the appropriate page based on menu item
-    switch (menuItem) {
-      case "dashboard":
-        navigate("/doctor/dashboard")
-        break
-      case "appointments":
-        navigate("/doctor/appointments")
-        break
-      case "patients":
-        navigate("/doctor/patients")
-        break
-      case "medical-records":
-        navigate("/doctor/medical-records")
-        break
-      case "operations":
-        navigate("/doctor/operations")
-        break
-      case "online-consultations":
-        navigate("/doctor/consultations")
-        break
-      case "statistics":
-        navigate("/doctor/statistics")
-        break
-      case "settings":
-        navigate("/doctor/settings")
-        break
-      default:
-        navigate("/doctor/dashboard")
-    }
-  }
+ 
 
   const openPatientModal = (patient) => {
     setSelectedPatient(patient)
@@ -200,89 +169,8 @@ const DoctorDashboard = () => {
   return (
     <div className="doctor-dashboard">
       {/* Sidebar Navigation */}
-      <div className="sidebar">
-        <div className="sidebar-header">
-          {doctorData?.profile_picture ? (
-            <img
-              src={`http://localhost:8000${doctorData.profile_picture}`}
-              alt="Doctor Profile"
-              className="profile-image"
-            />
-          ) : (
-            <ProfileInitials name={doctorName} size={50} />
-          )}
-          <div className="doctor-info">
-            <h3>Dr. {doctorName}</h3>
-            <p>{specialty}</p>
-          </div>
-        </div>
-
-        <div className="sidebar-menu">
-          <div
-            className={`menu-item ${activeMenuItem === "dashboard" ? "active" : ""}`}
-            onClick={() => handleMenuClick("dashboard")}
-          >
-            <i className="fas fa-tachometer-alt"></i>
-            <span>Tableau de bord</span>
-          </div>
-
-          <div
-            className={`menu-item ${activeMenuItem === "appointments" ? "active" : ""}`}
-            onClick={() => handleMenuClick("appointments")}
-          >
-            <i className="fas fa-calendar-alt"></i>
-            <span>Rendez-vous</span>
-          </div>
-
-          <div
-            className={`menu-item ${activeMenuItem === "patients" ? "active" : ""}`}
-            onClick={() => handleMenuClick("patients")}
-          >
-            <i className="fas fa-users"></i>
-            <span>Patients</span>
-          </div>
-
-          <div
-            className={`menu-item ${activeMenuItem === "medical-records" ? "active" : ""}`}
-            onClick={() => handleMenuClick("medical-records")}
-          >
-            <i className="fas fa-file-medical"></i>
-            <span>Dossiers médicaux</span>
-          </div>
-
-          <div
-            className={`menu-item ${activeMenuItem === "operations" ? "active" : ""}`}
-            onClick={() => handleMenuClick("operations")}
-          >
-            <i className="fas fa-procedures"></i>
-            <span>Opérations</span>
-          </div>
-
-          <div
-            className={`menu-item ${activeMenuItem === "online-consultations" ? "active" : ""}`}
-            onClick={() => handleMenuClick("online-consultations")}
-          >
-            <i className="fas fa-comments"></i>
-            <span>Consultations en ligne</span>
-          </div>
-
-          <div
-            className={`menu-item ${activeMenuItem === "statistics" ? "active" : ""}`}
-            onClick={() => handleMenuClick("statistics")}
-          >
-            <i className="fas fa-chart-line"></i>
-            <span>Statistiques</span>
-          </div>
-
-          <div
-            className={`menu-item ${activeMenuItem === "settings" ? "active" : ""}`}
-            onClick={() => handleMenuClick("settings")}
-          >
-            <i className="fas fa-cog"></i>
-            <span>Paramètres</span>
-          </div>
-        </div>
-      </div>
+      <Sidebar activePage="settings" />
+        
 
       {/* Main Content Area */}
       <div className="main-content">

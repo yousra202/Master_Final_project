@@ -1,76 +1,107 @@
-/* Search Form */
 .search-form {
-    background: var(--white);
-    border-radius: 0.625rem;
-    padding: 2rem;
-    max-width: 66.67%;
-    margin: -3.125rem auto 3.125rem;
-    box-shadow: 0 0.3125rem 0.9375rem rgba(0, 0, 0, 0.1);
-    position: relative;
-    z-index: 10;
+  background-color: white;
+  border-radius: 8px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+  margin-top: -40px;
+  position: relative;
+  z-index: 10;
+  max-width: 900px;
+  margin-left: auto;
+  margin-right: auto;
+  overflow: hidden;
+}
+
+.search-tabs {
+  display: flex;
+  border-bottom: 1px solid #eee;
+}
+
+.tab-btn {
+  padding: 15px 20px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  color: var(--text);
+  flex: 1;
+  text-align: center;
+  transition: all 0.3s;
+}
+
+.tab-btn.active {
+  color: var(--primary);
+  border-bottom: 2px solid var(--primary);
+}
+
+.tab-btn:hover:not(.active) {
+  background-color: #f9f9f9;
+}
+
+.search-inputs {
+  display: flex;
+  padding: 20px;
+  gap: 15px;
+  flex-wrap: wrap;
+}
+
+.input-group {
+  flex: 1;
+  min-width: 200px;
+}
+
+.input-group input {
+  width: 100%;
+  padding: 12px 15px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 1rem;
+}
+
+.input-group input:focus {
+  outline: none;
+  border-color: var(--primary);
+}
+
+.search-btn {
+  background-color: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 12px 25px;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.3s;
+}
+
+.search-btn:hover {
+  background-color: var(--primary-dark);
+}
+
+@media (max-width: 768px) {
+  .search-form {
+    margin-top: -20px;
+    margin-left: 15px;
+    margin-right: 15px;
   }
-  
+
   .search-tabs {
-    display: flex;
-    margin-bottom: 1.25rem;
-    border-bottom: 1px solid #eee;
     overflow-x: auto;
-    -ms-overflow-style: none; /* IE and Edge */
-    scrollbar-width: none; /* Firefox */
-  }
-  
-  .search-tabs::-webkit-scrollbar {
-    display: none; /* Chrome, Safari, Opera */
-  }
-  
-  .search-tab {
-    padding: 0.625rem 1.25rem;
-    cursor: pointer;
-    font-weight: 500;
     white-space: nowrap;
   }
-  
-  .search-tab.active {
-    color: var(--primary);
-    border-bottom: 2px solid var(--primary);
+
+  .tab-btn {
+    padding: 12px 15px;
+    font-size: 0.9rem;
   }
-  
-  /* Ensure form rows display properly */
-  .form-row {
-    display: flex;
-    gap: 3%;
-    margin-bottom: 0.9375rem;
+
+  .search-inputs {
+    flex-direction: column;
+    padding: 15px;
   }
-  
-  @media (max-width: 992px) {
-    .search-form {
-      max-width: 90%;
-    }
+
+  .search-btn {
+    width: 100%;
   }
-  
-  @media (max-width: 768px) {
-    .search-form {
-      padding: 1.25rem;
-      margin-top: -1.875rem;
-      margin-bottom: 1.875rem;
-    }
-  
-    .search-tab {
-      padding: 0.5rem 0.9375rem;
-      font-size: 0.875rem;
-    }
-  
-    .form-row {
-      flex-direction: column;
-      gap: 0.625rem;
-    }
-  }
-  
-  @media (max-width: 576px) {
-    .search-form {
-      margin-top: -1.25rem;
-      padding: 0.9375rem;
-      margin-bottom: 1.25rem;
-    }
-  }
-  
+}

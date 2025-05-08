@@ -1,111 +1,155 @@
 "use client"
 
-import { useState } from "react"
-import { Link, useNavigate } from "react-router-dom"
-import "./PatientHeader.css"
-import { getCurrentUser, logout } from "../../services/authService"
+import { useState, useRef, useEffect } from "react";
+import { Link, useNavigate } from "react-router-dom";
+import { getCurrentUser, logout } from "../../services/authService";
+import ProfileInitials from "../common/ProfileInitials";
+import { Search, ChevronDown, Settings, LogOut, LayoutDashboard } from "lucide-react";
+import "./PatientHeader.css";
 
 const PatientHeader = () => {
-  const [showDropdown, setShowDropdown] = useState(false)
-  const [showMobileMenu, setShowMobileMenu] = useState(false)
-  const navigate = useNavigate()
-  const currentUser = getCurrentUser()
-
-  const handleLogout = () => {
-    logout()
-    navigate("/login")
-  }
+  const navigate = useNavigate();
+  const currentUser = getCurrentUser();
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
 
   const toggleDropdown = () => {
-    setShowDropdown(!showDropdown)
-  }
+    setDropdownOpen(!dropdownOpen);
+  };
 
-  const toggleMobileMenu = () => {
-    setShowMobileMenu(!showMobileMenu)
-  }
+  const handleLogout = () => {
+    logout();
+    navigate("/login");
+  };
+
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => {
+      document.removeEventListener("mousedown", handleClickOutside);
+    };
+  }, []);
 
   return (
-    <header className="patient-header">
+    <header className="patient-header" role="banner">
       <div className="header-container">
-        <div className="logo">
-          <Link to="/">PlateformeSanté</Link>
-        </div>
+        <Link to="/" className="logo" aria-label="Retour à l'accueil">
+          Plateforme<span>Santé</span>
+        </Link>
 
-        <div className="search-container">
-          <input type="text" placeholder="Rechercher..." className="search-input" />
-          <button className="search-button">
-            <i className="fas fa-search"></i>
-          </button>
-        </div>
+        <nav className="main-nav" aria-label="Navigation principale">
+          <ul className="nav-links">
+            <li>
+              <Link to="/" className="nav-link">
+                Accueil
+              </Link>
+            </li>
+            <li>
+              <Link to="/doctors" className="nav-link">
+                Médecins
+              </Link>
+            </li>
+            <li>
+              <Link to="/patient/appointments" className="nav-link">
+                Mes rendez-vous
+              </Link>
+            </li>
+            <li>
+              <Link to="/patient/medical-record" className="nav-link">
+                Mon dossier
+              </Link>
+            </li>
+            <li>
+              <Link to="/patient/messages" className="nav-link">
+                Messages
+              </Link>
+            </li>
+          </ul>
+        </nav>
 
-        <div className="mobile-menu-button" onClick={toggleMobileMenu}>
-          <i className={showMobileMenu ? "fas fa-times" : "fas fa-bars"}></i>
-        </div>
+        <div className="header-right">
+          <div className="search-box">
+            <Search className="search-icon" size={18} />
+            <input 
+              type="text" 
+              placeholder="Rechercher..." 
+              aria-label="Rechercher sur le site"
+            />
+          </div>
 
-        <div className="user-profile" onClick={toggleDropdown}>
-          <div className="profile-image">
-            {currentUser?.profilePicture ? (
-              <img src={currentUser.profilePicture || "/placeholder.svg"} alt="Profile" />
-            ) : (
-              <div className="profile-initials">{currentUser?.username?.charAt(0) || "U"}</div>
+          <div className="user-profile" ref={dropdownRef}>
+            <button 
+              className="profile-trigger"
+              onClick={toggleDropdown}
+              aria-expanded={dropdownOpen}
+              aria-label="Menu utilisateur"
+            >
+              {currentUser && currentUser.profilePicture ? (
+                <img
+                  src={currentUser.profilePicture}
+                  alt={`Profil de ${currentUser.username}`}
+                  className="profile-image"
+                  width={35}
+                  height={35}
+                />
+              ) : (
+                <ProfileInitials 
+                  name={currentUser?.username || "User"} 
+                  size={40} 
+                  bgColor="#3498db" 
+                />
+              )}
+              <span className="username">{currentUser?.username}</span>
+              <ChevronDown 
+                className={`dropdown-icon ${dropdownOpen ? "rotate" : ""}`} 
+                size={16} 
+              />
+            </button>
+
+            {dropdownOpen && (
+              <ul className="profile-dropdown" role="menu">
+                <li role="none">
+                  <Link 
+                    to="/patient/dashboard" 
+                    className="dropdown-item"
+                    role="menuitem"
+                  >
+                    <LayoutDashboard size={16} />
+                    <span>Tableau de bord</span>
+                  </Link>
+                </li>
+                <li role="none">
+                  <Link 
+                    to="/patient/settings" 
+                    className="dropdown-item"
+                    role="menuitem"
+                  >
+                    <Settings size={16} />
+                    <span>Paramètres</span>
+                  </Link>
+                </li>
+                <li role="none">
+                  <button 
+                    className="dropdown-item"
+                    onClick={handleLogout}
+                    role="menuitem"
+                  >
+                    <LogOut size={16} />
+                    <span>Déconnexion</span>
+                  </button>
+                </li>
+              </ul>
             )}
           </div>
-          <span className="profile-name">{currentUser?.username || "User"}</span>
-          <i className={`fas fa-chevron-${showDropdown ? "up" : "down"}`}></i>
-
-          {showDropdown && (
-            <div className="dropdown-menu">
-              <Link to="/patient/profile" className="dropdown-item">
-                <i className="fas fa-user"></i> Mon profil
-              </Link>
-              <Link to="/patient/settings" className="dropdown-item">
-                <i className="fas fa-cog"></i> Paramètres
-              </Link>
-              <div className="dropdown-divider"></div>
-              <button onClick={handleLogout} className="dropdown-item">
-                <i className="fas fa-sign-out-alt"></i> Déconnexion
-              </button>
-            </div>
-          )}
         </div>
       </div>
-
-      <nav className={`main-nav ${showMobileMenu ? "show" : ""}`}>
-        <ul className="nav-links">
-          <li className="nav-item">
-            <Link to="/" className="nav-link">
-              Accueil
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/doctors" className="nav-link">
-              Médecins
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/patient/appointments" className="nav-link">
-              Mes rendez-vous
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/patient/consultations" className="nav-link">
-              Mes consultations
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/patient/medical-record" className="nav-link">
-              Mon dossier
-            </Link>
-          </li>
-          <li className="nav-item">
-            <Link to="/patient/messages" className="nav-link">
-              Messages
-            </Link>
-          </li>
-        </ul>
-      </nav>
     </header>
-  )
-}
+  );
+};
 
-export default PatientHeader
+export default PatientHeader;

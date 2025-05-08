@@ -35,7 +35,7 @@ const Login = () => {
       if (response.user_type === "doctor") {
         navigate("/doctor/dashboard")
       } else if (response.user_type === "patient") {
-        navigate("/patient/dashboard")
+        navigate("/")
       } else if (response.user_type === "admin") {
         navigate("/admin/dashboard")
       }
