@@ -1,24 +1,69 @@
 "use client"
 
 import { useState, useEffect } from "react"
+import { useNavigate } from "react-router-dom"
 import axios from "axios"
+import {
+  Container,
+  Typography,
+  Box,
+  Tabs,
+  Tab,
+  Paper,
+  Grid,
+  Card,
+  CardContent,
+  CardHeader,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
+  Chip,
+  Button,
+  Alert,
+  CircularProgress,
+} from "@mui/material"
+import { MedicalInformation, Medication, Science, Image, MonitorHeart, Warning } from "@mui/icons-material"
 import "./PatientMedicalRecord.css"
 
+function TabPanel(props) {
+  const { children, value, index, ...other } = props
+
+  return (
+    <div
+      role="tabpanel"
+      hidden={value !== index}
+      id={`medical-record-tabpanel-${index}`}
+      aria-labelledby={`medical-record-tab-${index}`}
+      {...other}
+    >
+      {value === index && <Box sx={{ p: 3 }}>{children}</Box>}
+    </div>
+  )
+}
+
 const PatientMedicalRecord = () => {
-  const [activeTab, setActiveTab] = useState("summary")
+  const navigate = useNavigate()
+  const [value, setValue] = useState(0)
   const [medicalRecord, setMedicalRecord] = useState(null)
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError] = useState("")
 
   useEffect(() => {
     const fetchMedicalRecord = async () => {
       try {
         const token = localStorage.getItem("token")
-        const response = await axios.get("/api/medical-records/records/my_record/", {
+        if (!token) {
+          navigate("/login")
+          return
+        }
+
+        const response = await axios.get("http://localhost:8000/api/my-record/", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         })
+
         setMedicalRecord(response.data)
         setLoading(false)
       } catch (err) {
@@ -29,277 +74,506 @@ const PatientMedicalRecord = () => {
     }
 
     fetchMedicalRecord()
-  }, [])
+  }, [navigate])
 
-  const handleTabChange = (tab) => {
-    setActiveTab(tab)
+  const handleTabChange = (event, newValue) => {
+    setValue(newValue)
   }
 
   if (loading) {
     return (
-      <div className="medical-record-container">
-        <div className="loading-spinner">
-          <i className="fas fa-spinner fa-spin"></i>
-          <p>Chargement de votre dossier médical...</p>
-        </div>
-      </div>
+      <Container className="medical-record-container">
+        <Box className="loading-container">
+          <CircularProgress />
+          <Typography variant="h6" sx={{ mt: 2 }}>
+            Chargement de votre dossier médical...
+          </Typography>
+        </Box>
+      </Container>
     )
   }
 
   if (error) {
     return (
-      <div className="medical-record-container">
-        <div className="error-message">
-          <i className="fas fa-exclamation-triangle"></i>
-          <p>{error}</p>
-          <button className="btn btn-primary">Réessayer</button>
-        </div>
-      </div>
+      <Container className="medical-record-container">
+        <Alert severity="error" sx={{ mt: 4 }}>
+          {error}
+        </Alert>
+      </Container>
     )
   }
 
-  // If no medical record exists yet
+  // If no medical record data is available yet
   if (!medicalRecord) {
     return (
-      <div className="medical-record-container">
-        <div className="no-record-message">
-          <i className="fas fa-folder-open"></i>
-          <h3>Aucun dossier médical trouvé</h3>
-          <p>Vous n'avez pas encore de dossier médical dans notre système.</p>
-        </div>
-      </div>
+      <Container className="medical-record-container">
+        <Box sx={{ mt: 4 }}>
+          <Alert severity="info">
+            Aucun dossier médical trouvé. Votre dossier médical sera créé lors de votre première consultation.
+          </Alert>
+        </Box>
+      </Container>
     )
   }
 
   return (
-    <div className="medical-record-container">
-      <div className="record-header">
-        <div className="record-title">
-          <h2>Mon Dossier Médical</h2>
-          {medicalRecord.allergies && medicalRecord.allergies.length > 0 && (
-            <div className="alert-badges">
-              {medicalRecord.allergies.map((allergy) => (
-                <div key={allergy.id} className="alert-badge badge-danger">
-                  <i className="fas fa-exclamation-triangle"></i> Allergie: {allergy.allergen}
-                </div>
+    <Container className="medical-record-container">
+      <Paper className="medical-record-header">
+        <Typography variant="h4" gutterBottom>
+          Mon Dossier Médical
+        </Typography>
+
+        {/* Alerts for allergies and conditions */}
+        <Box className="medical-alerts">
+          {medicalRecord.allergies &&
+            medicalRecord.allergies.map((allergy) => (
+              <Chip
+                key={allergy.id}
+                icon={<Warning />}
+                label={`Allergie: ${allergy.allergen} (${allergy.severity})`}
+                color="error"
+                variant="outlined"
+              />
+            ))}
+
+          {medicalRecord.history_entries &&
+            medicalRecord.history_entries
+              .filter((entry) => entry.is_active)
+              .map((entry) => (
+                <Chip
+                  key={entry.id}
+                  icon={<MedicalInformation />}
+                  label={entry.condition}
+                  color="warning"
+                  variant="outlined"
+                />
               ))}
-            </div>
-          )}
-        </div>
-        <div className="record-actions">
-          <button className="btn btn-outline">
-            <i className="fas fa-print"></i> Imprimer
-          </button>
-          <button className="btn btn-primary">
-            <i className="fas fa-download"></i> Télécharger
-          </button>
-        </div>
-      </div>
+        </Box>
 
-      <div className="patient-profile">
-        <div className="profile-avatar">
-          {medicalRecord.patient?.user?.profile_picture ? (
-            <img src={medicalRecord.patient.user.profile_picture || "/placeholder.svg"} alt="Patient" />
-          ) : (
-            <div className="profile-initials">{medicalRecord.patient?.user?.username?.charAt(0) || "P"}</div>
-          )}
-        </div>
-        <div className="profile-info">
-          <h3>{medicalRecord.patient?.user?.username || "Patient"}</h3>
-          <div className="profile-meta">
-            <span>
-              <i className="fas fa-id-card"></i> ID: {medicalRecord.id}
-            </span>
-            <span>
-              <i className="fas fa-birthday-cake"></i> {medicalRecord.patient?.birth_date || "Non renseigné"}
-            </span>
-            <span>
-              <i className="fas fa-phone"></i> {medicalRecord.patient?.user?.phone || "Non renseigné"}
-            </span>
-            <span>
-              <i className="fas fa-tint"></i> Groupe sanguin: {medicalRecord.blood_type || "Non renseigné"}
-            </span>
-          </div>
-          <div className="profile-meta">
-            <span>
-              <i className="fas fa-map-marker-alt"></i> {medicalRecord.patient?.address || "Adresse non renseignée"}
-            </span>
-            <span>
-              <i className="fas fa-envelope"></i> {medicalRecord.patient?.user?.email || "Email non renseigné"}
-            </span>
-          </div>
-        </div>
-      </div>
+        <Divider sx={{ mb: 2 }} />
 
-      <div className="record-tabs">
-        <div
-          className={`record-tab ${activeTab === "summary" ? "active" : ""}`}
-          onClick={() => handleTabChange("summary")}
-        >
-          Résumé
-        </div>
-        <div
-          className={`record-tab ${activeTab === "consultations" ? "active" : ""}`}
-          onClick={() => handleTabChange("consultations")}
-        >
-          Consultations
-        </div>
-        <div
-          className={`record-tab ${activeTab === "prescriptions" ? "active" : ""}`}
-          onClick={() => handleTabChange("prescriptions")}
-        >
-          Ordonnances
-        </div>
-        <div className={`record-tab ${activeTab === "exams" ? "active" : ""}`} onClick={() => handleTabChange("exams")}>
-          Examens
-        </div>
-        <div className={`record-tab ${activeTab === "ia" ? "active" : ""}`} onClick={() => handleTabChange("ia")}>
-          Analyse IA
-        </div>
-      </div>
+        {/* Patient information */}
+        <Box className="patient-info">
+          <Box className="patient-avatar">{medicalRecord.patient?.user?.username.charAt(0).toUpperCase() || "P"}</Box>
+          <Box>
+            <Typography variant="h5">{medicalRecord.patient?.user?.username || "Patient"}</Typography>
+            <Typography variant="body1" color="text.secondary">
+              {medicalRecord.patient?.user?.email || "Aucun email disponible"}
+            </Typography>
+            <Typography variant="body2" color="text.secondary">
+              Dossier créé le: {new Date(medicalRecord.created_at).toLocaleDateString()}
+            </Typography>
+          </Box>
+        </Box>
+      </Paper>
 
-      {/* Summary Tab Content */}
-      <div className={`tab-content ${activeTab === "summary" ? "active" : ""}`}>
-        <div className="summary-grid">
-          <div className="summary-card">
-            <h4>Antécédents Médicaux</h4>
-            {medicalRecord.medical_histories && medicalRecord.medical_histories.length > 0 ? (
-              <ul className="summary-list">
-                {medicalRecord.medical_histories.map((history) => (
-                  <li key={history.id}>
-                    {history.condition}
-                    <span>{new Date(history.diagnosis_date).toLocaleDateString()}</span>
-                  </li>
-                ))}
-              </ul>
-            ) : (
-              <p className="no-data">Aucun antécédent médical enregistré</p>
-            )}
-          </div>
+      <Box sx={{ width: "100%" }}>
+        <Box sx={{ borderBottom: 1, borderColor: "divider" }}>
+          <Tabs value={value} onChange={handleTabChange} aria-label="medical record tabs">
+            <Tab label="Résumé" icon={<MedicalInformation />} iconPosition="start" />
+            <Tab label="Historique Médical" icon={<MedicalInformation />} iconPosition="start" />
+            <Tab label="Médicaments" icon={<Medication />} iconPosition="start" />
+            <Tab label="Résultats d'Analyses" icon={<Science />} iconPosition="start" />
+            <Tab label="Images Médicales" icon={<Image />} iconPosition="start" />
+            <Tab label="Signes Vitaux" icon={<MonitorHeart />} iconPosition="start" />
+          </Tabs>
+        </Box>
 
-          <div className="summary-card">
-            <h4>Traitements en Cours</h4>
-            {medicalRecord.medications && medicalRecord.medications.filter((med) => med.is_active).length > 0 ? (
-              <ul className="summary-list">
-                {medicalRecord.medications
-                  .filter((med) => med.is_active)
-                  .map((medication) => (
-                    <li key={medication.id}>
-                      {medication.name} {medication.dosage}
-                      <span>{medication.frequency}</span>
-                    </li>
+        {/* Summary Tab */}
+        <TabPanel value={value} index={0}>
+          <Grid container spacing={3}>
+            <Grid item xs={12} md={6}>
+              <Card>
+                <CardHeader title="Conditions Actives" />
+                <Divider />
+                <CardContent>
+                  {medicalRecord.history_entries &&
+                  medicalRecord.history_entries.filter((entry) => entry.is_active).length > 0 ? (
+                    <List>
+                      {medicalRecord.history_entries
+                        .filter((entry) => entry.is_active)
+                        .map((entry) => (
+                          <ListItem key={entry.id}>
+                            <ListItemText
+                              primary={entry.condition}
+                              secondary={
+                                entry.diagnosis_date
+                                  ? `Diagnostiqué le: ${new Date(entry.diagnosis_date).toLocaleDateString()}`
+                                  : "Aucune date de diagnostic"
+                              }
+                            />
+                          </ListItem>
+                        ))}
+                    </List>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      Aucune condition active
+                    </Typography>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12} md={6}>
+              <Card>
+                <CardHeader title="Allergies" />
+                <Divider />
+                <CardContent>
+                  {medicalRecord.allergies && medicalRecord.allergies.length > 0 ? (
+                    <List>
+                      {medicalRecord.allergies.map((allergy) => (
+                        <ListItem key={allergy.id}>
+                          <ListItemText
+                            primary={`${allergy.allergen} (${allergy.severity})`}
+                            secondary={allergy.reaction || "Aucun détail de réaction"}
+                          />
+                        </ListItem>
+                      ))}
+                    </List>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      Aucune allergie connue
+                    </Typography>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+
+            <Grid item xs={12}>
+              <Card>
+                <CardHeader title="Consultations Récentes" />
+                <Divider />
+                <CardContent>
+                  {medicalRecord.consultations && medicalRecord.consultations.length > 0 ? (
+                    <div className="consultations-list">
+                      {medicalRecord.consultations.slice(0, 5).map((consultation) => (
+                        <Paper key={consultation.id} className="consultation-item">
+                          <Box className="consultation-header">
+                            <Typography variant="h6">
+                              Consultation du {new Date(consultation.date).toLocaleDateString()}
+                            </Typography>
+                            <Chip
+                              label={consultation.status}
+                              color={
+                                consultation.status === "completed"
+                                  ? "success"
+                                  : consultation.status === "cancelled"
+                                    ? "error"
+                                    : "primary"
+                              }
+                              size="small"
+                            />
+                          </Box>
+                          <Divider />
+                          <Box className="consultation-details">
+                            <Typography variant="body2">
+                              <strong>Médecin:</strong> Dr. {consultation.doctor.user.username}
+                            </Typography>
+                            <Typography variant="body2">
+                              <strong>Type:</strong>{" "}
+                              {consultation.consultation_type === "physical" ? "Présentiel" : "En ligne"}
+                            </Typography>
+                            <Typography variant="body2">
+                              <strong>Heure:</strong> {consultation.start_time} - {consultation.end_time}
+                            </Typography>
+                          </Box>
+                          {consultation.diagnosis && (
+                            <Box className="consultation-diagnosis">
+                              <Typography variant="subtitle2">Diagnostic:</Typography>
+                              <Typography variant="body2">{consultation.diagnosis}</Typography>
+                            </Box>
+                          )}
+                          {consultation.prescriptions && consultation.prescriptions.length > 0 && (
+                            <Box className="consultation-prescriptions">
+                              <Typography variant="subtitle2">Prescriptions:</Typography>
+                              <List dense>
+                                {consultation.prescriptions.map((prescription, index) => (
+                                  <ListItem key={index}>
+                                    <ListItemText
+                                      primary={prescription.medication}
+                                      secondary={`${prescription.dosage}, ${prescription.frequency}, ${prescription.duration}`}
+                                    />
+                                  </ListItem>
+                                ))}
+                              </List>
+                            </Box>
+                          )}
+                        </Paper>
+                      ))}
+                    </div>
+                  ) : (
+                    <Typography variant="body2" color="text.secondary">
+                      Aucune consultation récente
+                    </Typography>
+                  )}
+                </CardContent>
+              </Card>
+            </Grid>
+          </Grid>
+        </TabPanel>
+
+        {/* Medical History Tab */}
+        <TabPanel value={value} index={1}>
+          <Card>
+            <CardHeader
+              title="Historique Médical"
+              action={
+                <Button variant="outlined" disabled>
+                  Demander une correction
+                </Button>
+              }
+            />
+            <Divider />
+            <CardContent>
+              {medicalRecord.history_entries && medicalRecord.history_entries.length > 0 ? (
+                <div className="medical-history-timeline">
+                  {medicalRecord.history_entries.map((entry) => (
+                    <Paper key={entry.id} className="history-item">
+                      <Box className="history-date">
+                        {entry.diagnosis_date ? new Date(entry.diagnosis_date).toLocaleDateString() : "Date inconnue"}
+                      </Box>
+                      <Box className="history-content">
+                        <Typography variant="h6">{entry.condition}</Typography>
+                        <Chip
+                          label={entry.is_active ? "Actif" : "Résolu"}
+                          color={entry.is_active ? "primary" : "default"}
+                          size="small"
+                        />
+                        {entry.notes && (
+                          <Typography variant="body2" className="history-notes">
+                            {entry.notes}
+                          </Typography>
+                        )}
+                      </Box>
+                    </Paper>
                   ))}
-              </ul>
-            ) : (
-              <p className="no-data">Aucun traitement en cours</p>
-            )}
-          </div>
+                </div>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Aucun historique médical disponible
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </TabPanel>
 
-          <div className="summary-card">
-            <h4>Derniers Résultats</h4>
-            {medicalRecord.lab_results && medicalRecord.lab_results.length > 0 ? (
-              <ul className="summary-list">
-                {medicalRecord.lab_results
-                  .sort((a, b) => new Date(b.test_date) - new Date(a.test_date))
-                  .slice(0, 5)
-                  .map((result) => (
-                    <li key={result.id}>
-                      {result.test_name}
-                      <span>
-                        {result.result_value} {result.unit}
-                      </span>
-                    </li>
+        {/* Medications Tab */}
+        <TabPanel value={value} index={2}>
+          <Card>
+            <CardHeader title="Médicaments" />
+            <Divider />
+            <CardContent>
+              {medicalRecord.medications && medicalRecord.medications.length > 0 ? (
+                <div className="medications-list">
+                  <Grid container spacing={2}>
+                    {medicalRecord.medications.map((medication) => (
+                      <Grid item xs={12} md={6} key={medication.id}>
+                        <Paper className="medication-item">
+                          <Typography variant="h6" className="medication-name">
+                            {medication.name}
+                          </Typography>
+                          <Chip
+                            label={medication.is_active ? "En cours" : "Terminé"}
+                            color={medication.is_active ? "success" : "default"}
+                            size="small"
+                            className="medication-status"
+                          />
+                          <Box className="medication-details">
+                            <Typography variant="body2">
+                              <strong>Dosage:</strong> {medication.dosage}
+                            </Typography>
+                            <Typography variant="body2">
+                              <strong>Fréquence:</strong> {medication.frequency}
+                            </Typography>
+                            <Typography variant="body2">
+                              <strong>Début:</strong> {new Date(medication.start_date).toLocaleDateString()}
+                            </Typography>
+                            {medication.end_date && (
+                              <Typography variant="body2">
+                                <strong>Fin:</strong> {new Date(medication.end_date).toLocaleDateString()}
+                              </Typography>
+                            )}
+                          </Box>
+                          {medication.notes && (
+                            <Typography variant="body2" className="medication-notes">
+                              <strong>Notes:</strong> {medication.notes}
+                            </Typography>
+                          )}
+                        </Paper>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </div>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Aucun médicament enregistré
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </TabPanel>
+
+        {/* Lab Results Tab */}
+        <TabPanel value={value} index={3}>
+          <Card>
+            <CardHeader title="Résultats d'Analyses" />
+            <Divider />
+            <CardContent>
+              {medicalRecord.lab_results && medicalRecord.lab_results.length > 0 ? (
+                <div className="lab-results-list">
+                  {medicalRecord.lab_results.map((result) => (
+                    <Paper key={result.id} className="lab-result-item">
+                      <Box className="lab-result-header">
+                        <Typography variant="h6">{result.test_name}</Typography>
+                        <Typography variant="body2" className="lab-result-date">
+                          {new Date(result.test_date).toLocaleDateString()}
+                        </Typography>
+                      </Box>
+                      <Divider />
+                      <Box className="lab-result-details">
+                        <Typography variant="body1" className="lab-result-value">
+                          {result.result_value} {result.unit || ""}
+                        </Typography>
+                        {result.reference_range && (
+                          <Typography variant="body2" className="lab-result-range">
+                            <strong>Plage de référence:</strong> {result.reference_range}
+                          </Typography>
+                        )}
+                        <Chip
+                          label={result.is_abnormal ? "Anormal" : "Normal"}
+                          color={result.is_abnormal ? "error" : "success"}
+                          size="small"
+                          className="lab-result-status"
+                        />
+                      </Box>
+                      {result.notes && (
+                        <Typography variant="body2" className="lab-result-notes">
+                          <strong>Notes:</strong> {result.notes}
+                        </Typography>
+                      )}
+                    </Paper>
                   ))}
-              </ul>
-            ) : (
-              <p className="no-data">Aucun résultat d'examen enregistré</p>
-            )}
-          </div>
-        </div>
-
-        {medicalRecord.vital_signs && medicalRecord.vital_signs.length > 0 && (
-          <div className="summary-card">
-            <h4>
-              Dernières Constantes Vitales ({new Date(medicalRecord.vital_signs[0].date_recorded).toLocaleDateString()})
-            </h4>
-            <div className="vital-signs-grid">
-              <div className="vital-sign">
-                <i className="fas fa-heartbeat"></i>
-                <span className="vital-value">{medicalRecord.vital_signs[0].heart_rate || "--"}</span>
-                <span className="vital-label">Pouls (bpm)</span>
-              </div>
-              <div className="vital-sign">
-                <i className="fas fa-stethoscope"></i>
-                <span className="vital-value">
-                  {medicalRecord.vital_signs[0].blood_pressure_systolic || "--"}/
-                  {medicalRecord.vital_signs[0].blood_pressure_diastolic || "--"}
-                </span>
-                <span className="vital-label">Tension (mmHg)</span>
-              </div>
-              <div className="vital-sign">
-                <i className="fas fa-thermometer-half"></i>
-                <span className="vital-value">{medicalRecord.vital_signs[0].temperature || "--"}</span>
-                <span className="vital-label">Température (°C)</span>
-              </div>
-              <div className="vital-sign">
-                <i className="fas fa-weight"></i>
-                <span className="vital-value">{medicalRecord.vital_signs[0].weight || "--"}</span>
-                <span className="vital-label">Poids (kg)</span>
-              </div>
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* Consultations Tab Content */}
-      <div className={`tab-content ${activeTab === "consultations" ? "active" : ""}`}>
-        {/* This would be populated from the consultations data */}
-        <p className="no-data">Aucune consultation enregistrée</p>
-      </div>
-
-      {/* Prescriptions Tab Content */}
-      <div className={`tab-content ${activeTab === "prescriptions" ? "active" : ""}`}>
-        {/* This would be populated from the prescriptions data */}
-        <p className="no-data">Aucune ordonnance enregistrée</p>
-      </div>
-
-      {/* Exams Tab Content */}
-      <div className={`tab-content ${activeTab === "exams" ? "active" : ""}`}>
-        {/* This would be populated from the lab results data */}
-        <p className="no-data">Aucun examen enregistré</p>
-      </div>
-
-      {/* AI Analysis Tab Content */}
-      <div className={`tab-content ${activeTab === "ia" ? "active" : ""}`}>
-        {medicalRecord.ai_analyses && medicalRecord.ai_analyses.length > 0 ? (
-          medicalRecord.ai_analyses.map((analysis) => (
-            <div key={analysis.id} className="consultation-item">
-              <div className="consultation-header">
-                <span className="consultation-date">
-                  Analyse IA - {new Date(analysis.analysis_date).toLocaleDateString()}
-                </span>
-                <span className="consultation-type type-online">Système IA</span>
-              </div>
-              <p className="consultation-notes">
-                <strong>Synthèse:</strong> {analysis.summary}
-              </p>
-              {analysis.recommendations && (
-                <p className="consultation-notes">
-                  <strong>Recommandations:</strong> {analysis.recommendations}
-                </p>
+                </div>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Aucun résultat d'analyse disponible
+                </Typography>
               )}
-              {analysis.alerts && (
-                <p className="consultation-notes">
-                  <strong>Alertes:</strong> {analysis.alerts}
-                </p>
+            </CardContent>
+          </Card>
+        </TabPanel>
+
+        {/* Medical Images Tab */}
+        <TabPanel value={value} index={4}>
+          <Card>
+            <CardHeader title="Images Médicales" />
+            <Divider />
+            <CardContent>
+              {medicalRecord.medical_images && medicalRecord.medical_images.length > 0 ? (
+                <Grid container spacing={3}>
+                  {medicalRecord.medical_images.map((image) => (
+                    <Grid item xs={12} sm={6} md={4} key={image.id}>
+                      <Card className="medical-image-card">
+                        <CardContent>
+                          <Typography variant="h6">{image.image_type}</Typography>
+                          <Typography variant="body2" color="text.secondary">
+                            Date: {new Date(image.image_date).toLocaleDateString()}
+                          </Typography>
+                          <Box className="medical-image-container">
+                            <img
+                              src={`http://localhost:8000${image.image_file}`}
+                              alt={image.image_type}
+                              className="medical-image"
+                            />
+                          </Box>
+                          <Typography variant="body2" className="medical-image-description">
+                            {image.description || "Aucune description disponible"}
+                          </Typography>
+                        </CardContent>
+                      </Card>
+                    </Grid>
+                  ))}
+                </Grid>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Aucune image médicale disponible
+                </Typography>
               )}
-            </div>
-          ))
-        ) : (
-          <p className="no-data">Aucune analyse IA disponible</p>
-        )}
-      </div>
-    </div>
+            </CardContent>
+          </Card>
+        </TabPanel>
+
+        {/* Vital Signs Tab */}
+        <TabPanel value={value} index={5}>
+          <Card>
+            <CardHeader title="Signes Vitaux" />
+            <Divider />
+            <CardContent>
+              {medicalRecord.vital_signs && medicalRecord.vital_signs.length > 0 ? (
+                <div className="vital-signs-list">
+                  {medicalRecord.vital_signs.map((vital) => (
+                    <Paper key={vital.id} className="vital-sign-item">
+                      <Typography variant="subtitle1" className="vital-sign-date">
+                        {new Date(vital.date_recorded).toLocaleString()}
+                      </Typography>
+                      <Divider />
+                      <Grid container spacing={2} className="vital-sign-grid">
+                        <Grid item xs={6} sm={4}>
+                          <Typography variant="body2">
+                            <strong>Tension artérielle:</strong>
+                          </Typography>
+                          <Typography variant="body1">
+                            {vital.blood_pressure_systolic && vital.blood_pressure_diastolic
+                              ? `${vital.blood_pressure_systolic}/${vital.blood_pressure_diastolic} mmHg`
+                              : "-"}
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={6} sm={4}>
+                          <Typography variant="body2">
+                            <strong>Fréquence cardiaque:</strong>
+                          </Typography>
+                          <Typography variant="body1">{vital.heart_rate ? `${vital.heart_rate} bpm` : "-"}</Typography>
+                        </Grid>
+                        <Grid item xs={6} sm={4}>
+                          <Typography variant="body2">
+                            <strong>Fréquence respiratoire:</strong>
+                          </Typography>
+                          <Typography variant="body1">
+                            {vital.respiratory_rate ? `${vital.respiratory_rate} /min` : "-"}
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={6} sm={4}>
+                          <Typography variant="body2">
+                            <strong>Température:</strong>
+                          </Typography>
+                          <Typography variant="body1">{vital.temperature ? `${vital.temperature} °C` : "-"}</Typography>
+                        </Grid>
+                        <Grid item xs={6} sm={4}>
+                          <Typography variant="body2">
+                            <strong>Poids:</strong>
+                          </Typography>
+                          <Typography variant="body1">{vital.weight ? `${vital.weight} kg` : "-"}</Typography>
+                        </Grid>
+                        <Grid item xs={6} sm={4}>
+                          <Typography variant="body2">
+                            <strong>Taille:</strong>
+                          </Typography>
+                          <Typography variant="body1">{vital.height ? `${vital.height} cm` : "-"}</Typography>
+                        </Grid>
+                      </Grid>
+                    </Paper>
+                  ))}
+                </div>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Aucun enregistrement de signes vitaux disponible
+                </Typography>
+              )}
+            </CardContent>
+          </Card>
+        </TabPanel>
+      </Box>
+    </Container>
   )
 }
 

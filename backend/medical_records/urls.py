@@ -1,24 +1,28 @@
-from django.urls import path, include
-from rest_framework.routers import DefaultRouter
-from rest_framework_nested import routers
+from django.urls import path
 from .views import (
-    MedicalRecordViewSet, MedicalHistoryViewSet, AllergyViewSet,
-    MedicationViewSet, LabResultViewSet, VitalSignViewSet, AIAnalysisViewSet
+    MedicalRecordListView,
+    MedicalRecordDetailView,
+    PatientMedicalRecordView,
+    MedicalHistoryView,
+    AllergyView,
+    MedicationView,
+    LabResultView,
+    VitalSignView,
+    MedicalDocumentView,
+    OperationView,
+    ConsultationPrescriptionView
 )
 
-router = DefaultRouter()
-router.register(r'records', MedicalRecordViewSet)
-
-# Nested routers for related objects
-records_router = routers.NestedSimpleRouter(router, r'records', lookup='record')
-records_router.register(r'history', MedicalHistoryViewSet, basename='record-history')
-records_router.register(r'allergies', AllergyViewSet, basename='record-allergies')
-records_router.register(r'medications', MedicationViewSet, basename='record-medications')
-records_router.register(r'lab-results', LabResultViewSet, basename='record-lab-results')
-records_router.register(r'vital-signs', VitalSignViewSet, basename='record-vital-signs')
-records_router.register(r'ai-analyses', AIAnalysisViewSet, basename='record-ai-analyses')
-
 urlpatterns = [
-    path('', include(router.urls)),
-    path('', include(records_router.urls)),
+    path('records/', MedicalRecordListView.as_view(), name='medical-record-list'),
+    path('records/<int:pk>/', MedicalRecordDetailView.as_view(), name='medical-record-detail'),
+    path('my-record/', PatientMedicalRecordView.as_view(), name='patient-medical-record'),
+    path('records/<int:record_id>/history/', MedicalHistoryView.as_view(), name='medical-history'),
+    path('records/<int:record_id>/allergies/', AllergyView.as_view(), name='allergies'),
+    path('records/<int:record_id>/medications/', MedicationView.as_view(), name='medications'),
+    path('records/<int:record_id>/lab-results/', LabResultView.as_view(), name='lab-results'),
+    path('records/<int:record_id>/vital-signs/', VitalSignView.as_view(), name='vital-signs'),
+    path('records/<int:record_id>/documents/', MedicalDocumentView.as_view(), name='medical-documents'),
+    path('records/<int:record_id>/operations/', OperationView.as_view(), name='operations'),
+    path('consultations/<int:consultation_id>/prescriptions/', ConsultationPrescriptionView.as_view(), name='consultation-prescriptions'),
 ]

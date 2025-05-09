@@ -21,6 +21,8 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'medical_records.apps.MedicalRecordsConfig',  # Add this line
+
     'rest_framework',
     'corsheaders',
     'users',

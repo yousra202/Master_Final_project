@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from django.db import models  # Add this import
-from .models import Doctor, Patient, AdminProfile, ActivityLog, Consultation, MedicalRecord, Prescription, Review
+from .models import Doctor, Patient, AdminProfile, ActivityLog, Consultation, Prescription, Review
+from medical_records.models import MedicalRecord
 
 User = get_user_model()
 

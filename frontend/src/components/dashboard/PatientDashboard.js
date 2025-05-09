@@ -1,120 +1,277 @@
 "use client"
 
-import { useEffect, useState } from "react"
-import { Container, Typography, Paper, Box, Grid, Card, CardContent, CardHeader, Button, Divider } from "@mui/material"
-import { Person as PersonIcon, Event as EventIcon, MedicalInformation as MedicalInfoIcon } from "@mui/icons-material"
+import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
 import axios from "axios"
-import { getCurrentUser } from "../../services/authService"
-import { useNavigate } from "react-router-dom"
+import {
+  Container,
+  Grid,
+  Paper,
+  Typography,
+  Button,
+  Card,
+  CardContent,
+  CardActions,
+  Divider,
+  List,
+  ListItem,
+  ListItemText,
+  Chip,
+  Box,
+  CircularProgress,
+  Alert,
+} from "@mui/material"
+import {
+  CalendarMonth as CalendarIcon,
+  MedicalInformation as MedicalIcon,
+  Search as SearchIcon,
+  Notifications as NotificationIcon,
+} from "@mui/icons-material"
 
 const PatientDashboard = () => {
-  const navigate = useNavigate()
-  const [patientData, setPatientData] = useState(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState("")
+  const [upcomingAppointments, setUpcomingAppointments] = useState([])
+  const [medicalRecord, setMedicalRecord] = useState(null)
 
   useEffect(() => {
-    const fetchPatientData = async () => {
+    const fetchDashboardData = async () => {
       try {
         const token = localStorage.getItem("token")
-        const response = await axios.get("http://localhost:8000/api/patient/profile/", {
+        if (!token) {
+          setError("Vous devez être connecté pour accéder à cette page")
+          setLoading(false)
+          return
+        }
+
+        // Fetch upcoming appointments
+        const appointmentsResponse = await axios.get("http://localhost:8000/api/consultations/", {
           headers: {
             Authorization: `Bearer ${token}`,
           },
         })
 
-        setPatientData(response.data)
+        // Filter upcoming appointments
+        const upcoming = appointmentsResponse.data
+          .filter(
+            (appointment) =>
+              (appointment.status === "confirmed" || appointment.status === "pending") &&
+              new Date(appointment.date) >= new Date(),
+          )
+          .sort((a, b) => new Date(a.date) - new Date(b.date))
+
+        setUpcomingAppointments(upcoming.slice(0, 3)) // Get only the next 3 appointments
+
+        // Fetch medical record summary
+        try {
+          const medicalRecordResponse = await axios.get("http://localhost:8000/api/my-record/", {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          })
+          setMedicalRecord(medicalRecordResponse.data)
+        } catch (err) {
+          console.log("Medical record not found or not accessible yet")
+          // This is not a critical error, so we don't set the error state
+        }
+
         setLoading(false)
       } catch (err) {
-        setError("Failed to load patient data")
+        console.error("Error fetching dashboard data:", err)
+        setError("Erreur lors du chargement des données. Veuillez réessayer plus tard.")
         setLoading(false)
       }
     }
 
-    fetchPatientData()
+    fetchDashboardData()
   }, [])
-
-  const currentUser = getCurrentUser()
-  const username = currentUser ? currentUser.username : ""
 
   if (loading) {
     return (
-      <Container>
-        <Box sx={{ display: "flex", justifyContent: "center", alignItems: "center", height: "100vh" }}>
-          <Typography>Loading...</Typography>
-        </Box>
+      <Container sx={{ mt: 4, display: "flex", justifyContent: "center" }}>
+        <CircularProgress />
+      </Container>
+    )
+  }
+
+  if (error) {
+    return (
+      <Container sx={{ mt: 4 }}>
+        <Alert severity="error">{error}</Alert>
       </Container>
     )
   }
 
   return (
-    <Container maxWidth="lg" sx={{ mt: 4, mb: 4 }}>
-      <Paper sx={{ p: 3, mb: 4 }}>
-        <Typography variant="h4" gutterBottom>
-          Hello {username}
-        </Typography>
-        <Typography variant="body1">
-          Welcome to your dashboard. Here you can book appointments, view your medical records, and update your profile.
-        </Typography>
-      </Paper>
+    <Container sx={{ mt: 4, mb: 4 }}>
+      <Typography variant="h4" gutterBottom>
+        Tableau de bord
+      </Typography>
 
       <Grid container spacing={3}>
-        <Grid item xs={12} md={4}>
+        {/* Quick Actions */}
+        <Grid item xs={12}>
+          <Paper sx={{ p: 2, display: "flex", flexDirection: "column" }}>
+            <Typography variant="h6" gutterBottom>
+              Actions rapides
+            </Typography>
+            <Grid container spacing={2} sx={{ mt: 1 }}>
+              <Grid item xs={6} sm={3}>
+                <Button
+                  component={Link}
+                  to="/patient/appointments"
+                  variant="outlined"
+                  startIcon={<CalendarIcon />}
+                  fullWidth
+                  sx={{ height: "100%" }}
+                >
+                  Mes rendez-vous
+                </Button>
+              </Grid>
+              <Grid item xs={6} sm={3}>
+                <Button
+                  component={Link}
+                  to="/patient/medical-record"
+                  variant="outlined"
+                  startIcon={<MedicalIcon />}
+                  fullWidth
+                  sx={{ height: "100%" }}
+                >
+                  Mon dossier médical
+                </Button>
+              </Grid>
+              <Grid item xs={6} sm={3}>
+                <Button
+                  component={Link}
+                  to="/"
+                  variant="outlined"
+                  startIcon={<SearchIcon />}
+                  fullWidth
+                  sx={{ height: "100%" }}
+                >
+                  Rechercher un médecin
+                </Button>
+              </Grid>
+              <Grid item xs={6} sm={3}>
+                <Button variant="outlined" startIcon={<NotificationIcon />} fullWidth sx={{ height: "100%" }} disabled>
+                  Notifications
+                </Button>
+              </Grid>
+            </Grid>
+          </Paper>
+        </Grid>
+
+        {/* Upcoming Appointments */}
+        <Grid item xs={12} md={6}>
           <Card>
-            <CardHeader title="Appointments" avatar={<EventIcon color="primary" />} />
-            <Divider />
             <CardContent>
-              <Typography variant="body2" color="text.secondary">
-                You have no upcoming appointments.
+              <Typography variant="h6" gutterBottom>
+                Prochains rendez-vous
               </Typography>
-              <Button variant="outlined" color="primary" sx={{ mt: 2 }} onClick={() => navigate("/doctors")}>
-                Book Appointment
-              </Button>
+              <Divider sx={{ mb: 2 }} />
+
+              {upcomingAppointments.length > 0 ? (
+                <List>
+                  {upcomingAppointments.map((appointment) => (
+                    <ListItem key={appointment.id} divider>
+                      <ListItemText
+                        primary={`Dr. ${appointment.doctor.user.username} - ${appointment.consultation_type === "physical" ? "Présentiel" : "En ligne"}`}
+                        secondary={
+                          <>
+                            <Typography variant="body2" component="span">
+                              {new Date(appointment.date).toLocaleDateString()} à {appointment.start_time}
+                            </Typography>
+                            <br />
+                            <Chip
+                              size="small"
+                              label={appointment.status === "confirmed" ? "Confirmé" : "En attente"}
+                              color={appointment.status === "confirmed" ? "success" : "warning"}
+                              sx={{ mt: 1 }}
+                            />
+                          </>
+                        }
+                      />
+                    </ListItem>
+                  ))}
+                </List>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Aucun rendez-vous à venir
+                </Typography>
+              )}
             </CardContent>
+            <CardActions>
+              <Button component={Link} to="/patient/appointments" size="small" color="primary">
+                Voir tous les rendez-vous
+              </Button>
+            </CardActions>
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={4}>
+        {/* Medical Record Summary */}
+        <Grid item xs={12} md={6}>
           <Card>
-            <CardHeader title="Medical Records" avatar={<MedicalInfoIcon color="primary" />} />
-            <Divider />
             <CardContent>
-              <Typography variant="body2" color="text.secondary">
-                View your medical history and records.
+              <Typography variant="h6" gutterBottom>
+                Mon dossier médical
               </Typography>
+              <Divider sx={{ mb: 2 }} />
+
+              {medicalRecord ? (
+                <Box>
+                  <Typography variant="body2" gutterBottom>
+                    <strong>Dossier créé le:</strong> {new Date(medicalRecord.created_at).toLocaleDateString()}
+                  </Typography>
+
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Informations importantes:
+                    </Typography>
+                    <Grid container spacing={2}>
+                      <Grid item xs={6}>
+                        <Paper sx={{ p: 1, textAlign: "center", bgcolor: "error.light", color: "error.contrastText" }}>
+                          <Typography variant="body2">Allergies: {medicalRecord.allergies_count || 0}</Typography>
+                        </Paper>
+                      </Grid>
+                      <Grid item xs={6}>
+                        <Paper sx={{ p: 1, textAlign: "center", bgcolor: "info.light", color: "info.contrastText" }}>
+                          <Typography variant="body2">
+                            Médicaments actifs: {medicalRecord.active_medications_count || 0}
+                          </Typography>
+                        </Paper>
+                      </Grid>
+                    </Grid>
+                  </Box>
+
+                  <Box sx={{ mt: 2 }}>
+                    <Typography variant="subtitle2" gutterBottom>
+                      Historique:
+                    </Typography>
+                    <Paper sx={{ p: 1, textAlign: "center", bgcolor: "primary.light", color: "primary.contrastText" }}>
+                      <Typography variant="body2">Consultations: {medicalRecord.consultations_count || 0}</Typography>
+                    </Paper>
+                  </Box>
+                </Box>
+              ) : (
+                <Typography variant="body2" color="text.secondary">
+                  Votre dossier médical sera créé lors de votre première consultation
+                </Typography>
+              )}
+            </CardContent>
+            <CardActions>
               <Button
-                variant="outlined"
+                component={Link}
+                to="/patient/medical-record"
+                size="small"
                 color="primary"
-                sx={{ mt: 2 }}
-                onClick={() => navigate("/patient/medical-record")}
+                disabled={!medicalRecord}
               >
-                View Records
+                Voir mon dossier médical
               </Button>
-            </CardContent>
-          </Card>
-        </Grid>
-
-        <Grid item xs={12} md={4}>
-          <Card>
-            <CardHeader title="Profile" avatar={<PersonIcon color="primary" />} />
-            <Divider />
-            <CardContent>
-              <Typography variant="body2" color="text.secondary">
-                Update your personal information and preferences.
-              </Typography>
-              <Button variant="outlined" color="primary" sx={{ mt: 2 }} onClick={() => navigate("/patient/settings")}>
-                Edit Profile
-              </Button>
-            </CardContent>
+            </CardActions>
           </Card>
         </Grid>
       </Grid>
-
-      {error && (
-        <Paper sx={{ p: 2, mt: 3, bgcolor: "error.light" }}>
-          <Typography color="error">{error}</Typography>
-        </Paper>
-      )}
     </Container>
   )
 }

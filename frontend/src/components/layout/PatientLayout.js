@@ -6,7 +6,7 @@ const PatientLayout = () => {
   return (
     <div className="main-layout">
       <PatientHeader />
-      <main className="main-content">
+      <main className="main-content-home">
         <Outlet />
       </main>
       <Footer />

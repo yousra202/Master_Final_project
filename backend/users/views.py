@@ -5,6 +5,8 @@ from rest_framework.permissions import IsAuthenticated, AllowAny, IsAdminUser
 from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import authenticate
 from django.db import models
+from medical_records.models import MedicalRecord
+
 import json
 from datetime import datetime, timedelta
 from .serializers import (
@@ -19,7 +21,7 @@ from .serializers import (
     ReviewSerializer,
     PrescriptionSerializer
 )
-from .models import Doctor, Patient, User, AdminProfile, ActivityLog, Consultation, MedicalRecord, Prescription, Review
+from .models import Doctor, Patient, User, AdminProfile, ActivityLog, Consultation, Prescription, Review
 import logging
 
 # Set up logging
