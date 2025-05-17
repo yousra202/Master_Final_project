@@ -7,6 +7,8 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('api/', include('users.urls')),
     path('api/', include('medical_records.urls')),
+    path('api/', include('brain_diagnostics.urls')),
+
 ]
 
 # Ajouter les URLs pour servir les fichiers médias en développement
