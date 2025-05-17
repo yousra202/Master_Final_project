@@ -175,7 +175,7 @@ const PatientMedicalRecord = () => {
             <Tab label="Médicaments" icon={<Medication />} iconPosition="start" />
             <Tab label="Résultats d'Analyses" icon={<Science />} iconPosition="start" />
             <Tab label="Images Médicales" icon={<Image />} iconPosition="start" />
-            <Tab label="Signes Vitaux" icon={<MonitorHeart />} iconPosition="start" />
+           
           </Tabs>
         </Box>
 
@@ -503,75 +503,7 @@ const PatientMedicalRecord = () => {
           </Card>
         </TabPanel>
 
-        {/* Vital Signs Tab */}
-        <TabPanel value={value} index={5}>
-          <Card>
-            <CardHeader title="Signes Vitaux" />
-            <Divider />
-            <CardContent>
-              {medicalRecord.vital_signs && medicalRecord.vital_signs.length > 0 ? (
-                <div className="vital-signs-list">
-                  {medicalRecord.vital_signs.map((vital) => (
-                    <Paper key={vital.id} className="vital-sign-item">
-                      <Typography variant="subtitle1" className="vital-sign-date">
-                        {new Date(vital.date_recorded).toLocaleString()}
-                      </Typography>
-                      <Divider />
-                      <Grid container spacing={2} className="vital-sign-grid">
-                        <Grid item xs={6} sm={4}>
-                          <Typography variant="body2">
-                            <strong>Tension artérielle:</strong>
-                          </Typography>
-                          <Typography variant="body1">
-                            {vital.blood_pressure_systolic && vital.blood_pressure_diastolic
-                              ? `${vital.blood_pressure_systolic}/${vital.blood_pressure_diastolic} mmHg`
-                              : "-"}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={6} sm={4}>
-                          <Typography variant="body2">
-                            <strong>Fréquence cardiaque:</strong>
-                          </Typography>
-                          <Typography variant="body1">{vital.heart_rate ? `${vital.heart_rate} bpm` : "-"}</Typography>
-                        </Grid>
-                        <Grid item xs={6} sm={4}>
-                          <Typography variant="body2">
-                            <strong>Fréquence respiratoire:</strong>
-                          </Typography>
-                          <Typography variant="body1">
-                            {vital.respiratory_rate ? `${vital.respiratory_rate} /min` : "-"}
-                          </Typography>
-                        </Grid>
-                        <Grid item xs={6} sm={4}>
-                          <Typography variant="body2">
-                            <strong>Température:</strong>
-                          </Typography>
-                          <Typography variant="body1">{vital.temperature ? `${vital.temperature} °C` : "-"}</Typography>
-                        </Grid>
-                        <Grid item xs={6} sm={4}>
-                          <Typography variant="body2">
-                            <strong>Poids:</strong>
-                          </Typography>
-                          <Typography variant="body1">{vital.weight ? `${vital.weight} kg` : "-"}</Typography>
-                        </Grid>
-                        <Grid item xs={6} sm={4}>
-                          <Typography variant="body2">
-                            <strong>Taille:</strong>
-                          </Typography>
-                          <Typography variant="body1">{vital.height ? `${vital.height} cm` : "-"}</Typography>
-                        </Grid>
-                      </Grid>
-                    </Paper>
-                  ))}
-                </div>
-              ) : (
-                <Typography variant="body2" color="text.secondary">
-                  Aucun enregistrement de signes vitaux disponible
-                </Typography>
-              )}
-            </CardContent>
-          </Card>
-        </TabPanel>
+        
       </Box>
     </Container>
   )

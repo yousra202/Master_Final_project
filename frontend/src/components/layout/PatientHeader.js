@@ -1,14 +1,15 @@
 "use client"
 
 import { useState, useRef, useEffect } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useNavigate, useLocation } from "react-router-dom";
 import { getCurrentUser, logout } from "../../services/authService";
 import ProfileInitials from "../common/ProfileInitials";
-import { Search, ChevronDown, Settings, LogOut, LayoutDashboard } from "lucide-react";
+import { Search, ChevronDown, User, Calendar, MessageSquare, Home, Stethoscope, Settings, LogOut, LayoutDashboard  } from "lucide-react";
 import "./PatientHeader.css";
 
 const PatientHeader = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const currentUser = getCurrentUser();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -35,53 +36,70 @@ const PatientHeader = () => {
     };
   }, []);
 
+  // Function to check if a link is active
+  const isActive = (path) => {
+    return location.pathname === path;
+  };
+
   return (
-    <header className="patient-header" role="banner">
+    <header className="patient-header">
       <div className="header-container">
-        <Link to="/" className="logo" aria-label="Retour à l'accueil">
-          Plateforme<span>Santé</span>
+        <Link to="/" className="logo">
+          <span className="logo-primary">Plateforme</span>
+          <span className="logo-secondary">Santé</span>
         </Link>
 
-        <nav className="main-nav" aria-label="Navigation principale">
+        <nav className="main-nav">
           <ul className="nav-links">
             <li>
-              <Link to="/" className="nav-link">
-                Accueil
+              <Link 
+                to="/" 
+                className={`nav-link ${isActive("/") ? "active" : ""}`}
+              >
+                <Home size={18} className="nav-icon" />
+                <span>Accueil</span>
               </Link>
             </li>
             <li>
-              <Link to="/doctors" className="nav-link">
-                Médecins
+              <Link 
+                to="/doctors" 
+                className={`nav-link ${isActive("/doctors") ? "active" : ""}`}
+              >
+                <Stethoscope size={18} className="nav-icon" />
+                <span>Médecins</span>
               </Link>
             </li>
             <li>
-              <Link to="/patient/appointments" className="nav-link">
-                Mes rendez-vous
+              <Link 
+                to="/patient/appointments" 
+                className={`nav-link ${isActive("/patient/appointments") ? "active" : ""}`}
+              >
+                <Calendar size={18} className="nav-icon" />
+                <span>Mes rendez-vous</span>
               </Link>
             </li>
             <li>
-              <Link to="/patient/medical-record" className="nav-link">
-                Mon dossier
+              <Link 
+                to="/patient/medical-record" 
+                className={`nav-link ${isActive("/patient/medical-record") ? "active" : ""}`}
+              >
+                <User size={18} className="nav-icon" />
+                <span>Mon dossier</span>
               </Link>
             </li>
             <li>
-              <Link to="/patient/messages" className="nav-link">
-                Messages
+              <Link 
+                to="/patient/messages" 
+                className={`nav-link ${isActive("/patient/messages") ? "active" : ""}`}
+              >
+                <MessageSquare size={18} className="nav-icon" />
+                <span>Messages</span>
               </Link>
             </li>
           </ul>
         </nav>
 
         <div className="header-right">
-          <div className="search-box">
-            <Search className="search-icon" size={18} />
-            <input 
-              type="text" 
-              placeholder="Rechercher..." 
-              aria-label="Rechercher sur le site"
-            />
-          </div>
-
           <div className="user-profile" ref={dropdownRef}>
             <button 
               className="profile-trigger"
@@ -99,7 +117,7 @@ const PatientHeader = () => {
                 />
               ) : (
                 <ProfileInitials 
-                  name={currentUser?.username || "User"} 
+                  name={currentUser?.username } 
                   size={40} 
                   bgColor="#3498db" 
                 />
@@ -116,7 +134,7 @@ const PatientHeader = () => {
                 <li role="none">
                   <Link 
                     to="/patient/dashboard" 
-                    className="dropdown-item"
+                    className={`dropdown-item ${isActive("/patient/dashboard") ? "active" : ""}`}
                     role="menuitem"
                   >
                     <LayoutDashboard size={16} />
@@ -126,7 +144,7 @@ const PatientHeader = () => {
                 <li role="none">
                   <Link 
                     to="/patient/settings" 
-                    className="dropdown-item"
+                    className={`dropdown-item ${isActive("/patient/settings") ? "active" : ""}`}
                     role="menuitem"
                   >
                     <Settings size={16} />

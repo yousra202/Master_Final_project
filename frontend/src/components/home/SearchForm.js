@@ -10,27 +10,8 @@ const SearchForm = () => {
     <section className="search-form">
       <div className="container">
         <div className="search-tabs">
-          <button
-            className={activeTab === "doctors" ? "tab-btn active" : "tab-btn"}
-            onClick={() => setActiveTab("doctors")}
-          >
-            Médecins
-          </button>
-          <button
-            className={activeTab === "clinics" ? "tab-btn active" : "tab-btn"}
-            onClick={() => setActiveTab("clinics")}
-          >
-            Cliniques
-          </button>
-          <button
-            className={activeTab === "pharmacies" ? "tab-btn active" : "tab-btn"}
-            onClick={() => setActiveTab("pharmacies")}
-          >
-            Pharmacies
-          </button>
-          <button className={activeTab === "labs" ? "tab-btn active" : "tab-btn"} onClick={() => setActiveTab("labs")}>
-            Laboratoires
-          </button>
+         
+          
         </div>
 
         <div className="search-inputs">

@@ -8,7 +8,7 @@
   .main-content {
     flex: 1;
     padding: 30px;
-    margin-left: 250px;
+    margin-left: 0px;
   }
   
   .appointments-tabs {
@@ -409,7 +409,7 @@
   @media (max-width: 768px) {
     .main-content {
       margin-left: 70px;
-      padding: 20px;
+     
     }
   
     .appointment-header {

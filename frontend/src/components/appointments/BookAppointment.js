@@ -270,7 +270,7 @@ const BookAppointment = () => {
                   <i className="fas fa-hospital"></i>
                   <div>
                     <h4>Consultation physique</h4>
-                    <p>Prix: {doctor.physicalConsultationFee} €</p>
+                     
                   </div>
                 </div>
               )}
@@ -280,7 +280,7 @@ const BookAppointment = () => {
                   <i className="fas fa-video"></i>
                   <div>
                     <h4>Consultation en ligne</h4>
-                    <p>Prix: {doctor.onlineConsultationFee} €</p>
+                   
                   </div>
                 </div>
               )}
@@ -403,14 +403,7 @@ const BookAppointment = () => {
                 </span>
               </div>
 
-              <div className="summary-item">
-                <span className="summary-label">Prix:</span>
-                <span className="summary-value">
-                  {consultationType === "physical"
-                    ? `${doctor?.physicalConsultationFee} €`
-                    : `${doctor?.onlineConsultationFee} €`}
-                </span>
-              </div>
+              
             </div>
           </div>
 

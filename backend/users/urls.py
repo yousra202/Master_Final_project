@@ -33,6 +33,8 @@ urlpatterns = [
     path('doctor/profile/', DoctorProfileView.as_view(), name='doctor-profile'),
     path('doctor/profile/update/', DoctorProfileView.as_view(), name='doctor-profile-update'),
     path('patient/profile/', PatientProfileView.as_view(), name='patient-profile'),
+    path('patient/profile/update/', PatientProfileView.as_view(), name='patient-profile-update'),
+
     
     # Doctor routes
     path('doctors/', DoctorListView.as_view(), name='doctor-list'),

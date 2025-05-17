@@ -274,6 +274,7 @@ class DoctorProfileView(APIView):
             serializer = DoctorProfileSerializer(doctor)
             return Response(serializer.data)
 
+  
 class PatientProfileView(APIView):
     permission_classes = [IsAuthenticated]
     
@@ -285,6 +286,46 @@ class PatientProfileView(APIView):
         except Patient.DoesNotExist:
             return Response({'detail': 'Patient profile not found'}, status=status.HTTP_404_NOT_FOUND)
 
+ 
+    def put(self, request):
+        try:
+            patient = Patient.objects.get(user=request.user)
+            user = request.user
+            
+            # Process user data
+            user_fields = ['username', 'email', 'first_name', 'last_name', 
+                         'phone', 'birth_date', 'gender']
+            for field in user_fields:
+                if f'user.{field}' in request.data:
+                    setattr(user, field, request.data[f'user.{field}'])
+            
+            # Process patient data
+            patient_fields = ['address', 'blood_group', 'medical_history',
+                            'allergies', 'medications']
+            for field in patient_fields:
+                if field in request.data:
+                    if field in ['allergies', 'medications']:
+                        # Handle JSON fields
+                        try:
+                            setattr(patient, field, json.loads(request.data[field]))
+                        except:
+                            setattr(patient, field, request.data[field])
+                    else:
+                        setattr(patient, field, request.data[field])
+            
+            # Handle file upload
+            if 'profile_picture' in request.FILES:
+                patient.profile_picture = request.FILES['profile_picture']
+            
+            # Save both models
+            user.save()
+            patient.save()
+            
+            serializer = PatientProfileSerializer(patient)
+            return Response(serializer.data)
+            
+        except Exception as e:
+            return Response({'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 # Update the DoctorListView to handle database errors and always return mock data as fallback
 class DoctorListView(APIView):
     permission_classes = [AllowAny]  # Ensure this is set to AllowAny

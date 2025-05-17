@@ -1,17 +1,26 @@
 "use client"
-import { Link, useNavigate } from "react-router-dom"
+
+import { Link, useNavigate, useLocation } from "react-router-dom"
 import { getCurrentUser, logout } from "../../services/authService"
 import "./Header.css"
 import ProfileInitials from "../common/ProfileInitials"
 import PatientHeader from "./PatientHeader"
+import { Search } from "lucide-react"
 
 const Header = () => {
   const navigate = useNavigate()
+  const location = useLocation()
   const currentUser = getCurrentUser()
 
   const handleLogout = () => {
     logout()
     navigate("/login")
+  }
+
+  // Function to check if a link is active
+  const isActive = (path) => {
+    return location.pathname === path || 
+           (path !== '/' && location.pathname.startsWith(path))
   }
 
   // If user is a patient, show the PatientHeader
@@ -38,11 +47,17 @@ const Header = () => {
                   <span className="welcome-text">Bonjour, {currentUser.username}</span>
                 </div>
                 {currentUser.userType === "doctor" ? (
-                  <Link to="/doctor/dashboard" className="btn btn-outline">
+                  <Link 
+                    to="/doctor/dashboard" 
+                    className={`btn btn-outline ${isActive('/doctor/dashboard') ? 'active' : ''}`}
+                  >
                     Tableau de bord
                   </Link>
                 ) : (
-                  <Link to="/patient/dashboard" className="btn btn-outline">
+                  <Link 
+                    to="/patient/dashboard" 
+                    className={`btn btn-outline ${isActive('/patient/dashboard') ? 'active' : ''}`}
+                  >
                     Tableau de bord
                   </Link>
                 )}
@@ -52,10 +67,16 @@ const Header = () => {
               </>
             ) : (
               <>
-                <Link to="/login" className="btn btn-outline">
+                <Link 
+                  to="/login" 
+                  className={`btn btn-outline ${isActive('/login') ? 'active' : ''}`}
+                >
                   Connexion
                 </Link>
-                <Link to="/register/patient" className="btn btn-primary">
+                <Link 
+                  to="/register/patient" 
+                  className={`btn btn-primary ${isActive('/register') ? 'active' : ''}`}
+                >
                   Inscription
                 </Link>
               </>
@@ -67,32 +88,46 @@ const Header = () => {
           <div className="nav-menu">
             <ul className="nav-links">
               <li>
-                <Link to="/">Accueil</Link>
+                <Link 
+                  to="/" 
+                  className={isActive("/") ? "active" : ""}
+                >
+                  Accueil
+                </Link>
               </li>
               <li>
-                <Link to="/doctors">Médecins</Link>
+                <Link 
+                  to="/doctors" 
+                  className={isActive("/doctors") ? "active" : ""}
+                >
+                  Médecins
+                </Link>
               </li>
               <li>
-                <Link to="/specialties">Spécialités</Link>
+                <Link 
+                  to="/specialties" 
+                  className={isActive("/specialties") ? "active" : ""}
+                >
+                  Spécialités
+                </Link>
               </li>
               <li>
-                <Link to="/clinics">Cliniques</Link>
+                <Link 
+                  to="/blog" 
+                  className={isActive("/blog") ? "active" : ""}
+                >
+                  Blog
+                </Link>
               </li>
               <li>
-                <Link to="/pharmacies">Pharmacies</Link>
-              </li>
-              <li>
-                <Link to="/blog">Blog</Link>
-              </li>
-              <li>
-                <Link to="/contact">Contact</Link>
+                <Link 
+                  to="/contact" 
+                  className={isActive("/contact") ? "active" : ""}
+                >
+                  Contact
+                </Link>
               </li>
             </ul>
-
-            <div className="search-box">
-              <i className="fas fa-search"></i>
-              <input type="text" placeholder="Rechercher..." />
-            </div>
           </div>
         </nav>
       </div>

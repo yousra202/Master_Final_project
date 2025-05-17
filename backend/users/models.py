@@ -55,6 +55,7 @@ class Doctor(models.Model):
 
 class Patient(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='patient_profile')
+    profile_picture = models.ImageField(upload_to='profile_pictures/', blank=True, null=True)
     address = models.TextField()
     medical_history = models.TextField(blank=True, null=True)
     is_verified = models.BooleanField(default=False)

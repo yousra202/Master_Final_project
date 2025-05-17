@@ -18,6 +18,8 @@ import DoctorManagement from "./components/admin/DoctorManagement";
 
 import PatientMedicalRecord from "./components/medical_records/PatientMedicalRecord";
 import DoctorMedicalRecordView from "./components/medical_records/DoctorMedicalRecordView";
+import DoctorMedicalRecords from "./components/medical_records/DoctorMedicalRecords";
+import PatientProfileSettings from "./components/dashboard/PatientProfileSettings"
 
 import PatientDashboard from "./components/dashboard/PatientDashboard";
 import AdminDashboard from "./components/admin/AdminDashboard";
@@ -34,6 +36,7 @@ function App() {
       <Route path="/register/doctor" element={<DoctorRegistration />} />
       <Route path="/register/patient" element={<PatientRegistration />} />
       <Route path="/auth-redirect" element={<AuthRedirect />} />
+      <Route path="/PatientProfileSettings" element={<PatientProfileSettings />} />
 
       {/* Doctor routes with layout */}
       <Route
@@ -48,6 +51,7 @@ function App() {
         <Route path="settings" element={<DoctorSettings />} />
         <Route path="appointments" element={<DoctorAppointments />} />
         <Route path="availability" element={<DoctorAvailability />} />
+        <Route path="medical-records" element={<DoctorMedicalRecords />} />
         <Route path="medical-records/:recordId" element={<DoctorMedicalRecordView />} />
       </Route>
 
@@ -64,6 +68,7 @@ function App() {
         <Route path="appointments" element={<PatientAppointments />} />
         <Route path="book-appointment/:doctorId" element={<BookAppointment />} />
         <Route path="medical-record" element={<PatientMedicalRecord />} />
+        <Route path="settings" element={<PatientProfileSettings />} />
       </Route>
       <Route
         path="/book-appointment/:doctorId"
@@ -100,7 +105,7 @@ function App() {
         path="/doctor/medical-records"
         element={
           <ProtectedRoute userType="doctor">
-            <div>Medical Records Page (Coming Soon)</div>
+            <DoctorMedicalRecordView />
           </ProtectedRoute>
         }
       />
