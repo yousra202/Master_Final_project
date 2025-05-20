@@ -1,7 +1,21 @@
+import { useNavigate } from 'react-router-dom';
+import { getCurrentUser } from "../../services/authService"; // Adjust path if needed
 import "./Features.css"
-
 const Features = () => {
-  return (
+  const navigate = useNavigate();
+  
+  const handleDiagnosticClick = () => {
+  const currentUser = getCurrentUser();
+  
+  if (currentUser) {
+    navigate('/diagnostic');
+  } else {
+    navigate('/login');
+  }
+};
+
+ 
+    return (
     <section className="features">
       <div className="container">
         <div className="section-title">
@@ -26,13 +40,13 @@ const Features = () => {
             <p>Consultez un médecin en vidéo sans vous déplacer depuis chez vous</p>
           </div>
 
-          <div className="feature-card">
+          <div className="feature-card" onClick={handleDiagnosticClick}>
             <div className="feature-icon">
-              <i className="fas fa-file-medical"></i>
-            </div>
-            <h3>Diagnostic en ligne</h3>
-            <p>Envoyez vos documents médicaux et obtenez un diagnostic à distance</p>
+            <i className="fas fa-file-medical"></i>
           </div>
+          <h3>Diagnostic en ligne</h3>
+          <p>Envoyez vos documents médicaux et obtenez un diagnostic à distance</p>
+        </div>
         </div>
       </div>
     </section>

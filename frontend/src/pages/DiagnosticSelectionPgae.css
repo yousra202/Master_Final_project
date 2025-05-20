@@ -1,0 +1,187 @@
+.diagnostic-selection-page {
+  padding: 2rem 0;
+}
+
+.page-description {
+  font-size: 1.1rem;
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.diagnostic-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin: 2rem 0;
+}
+
+.diagnostic-option {
+  flex: 1;
+  min-width: 250px;
+  padding: 2rem;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.diagnostic-option:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.diagnostic-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: #4a6bff;
+}
+
+.disclaimer {
+  margin-top: 3rem;
+  padding: 1rem;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  border-left: 4px solid #ffc107;
+}
+
+/* Brain Diagnostic Page */
+.brain-diagnostic-page {
+  padding: 2rem 0;
+}
+
+.upload-container {
+  margin: 2rem 0;
+  max-width: 700px;
+}
+
+.upload-area {
+  margin-bottom: 1.5rem;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 300px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.file-label:hover {
+  border-color: #4a6bff;
+}
+
+.file-label i {
+  font-size: 3rem;
+  color: #ccc;
+  margin-bottom: 1rem;
+}
+
+.image-preview {
+  max-width: 100%;
+  max-height: 280px;
+  border-radius: 4px;
+}
+
+.submit-button {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  background-color: #4a6bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submit-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #dc3545;
+  margin: 1rem 0;
+}
+
+/* Result Styles */
+.result-container {
+  margin-top: 3rem;
+  padding: 2rem;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+}
+
+.result {
+  display: flex;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.no-tumor {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.tumor-detected {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.result-icon {
+  font-size: 2.5rem;
+  margin-right: 1.5rem;
+}
+
+.result-details {
+  flex: 1;
+}
+
+.confidence {
+  margin-top: 0.5rem;
+}
+
+.recommendation {
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.analyzed-image {
+  margin-top: 1.5rem;
+}
+
+.analyzed-image img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+
+/* Responsive Styles */
+@media (max-width: 768px) {
+  .diagnostic-options {
+    flex-direction: column;
+  }
+  
+  .result {
+    flex-direction: column;
+  }
+  
+  .result-icon {
+    margin-right: 0;
+    margin-bottom: 1rem;
+  }
+}

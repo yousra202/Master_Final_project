@@ -1,4 +1,4 @@
-import { Routes, Route, Navigate } from "react-router-dom";
+import { Routes, Route, Navigate, Switch } from "react-router-dom";
 import DoctorRegistration from "./components/auth/DoctorRegistration";
 import PatientRegistration from "./components/auth/PatientRegistration";
 import Login from "./components/auth/Login";
@@ -27,9 +27,29 @@ import AuthRedirect from "./components/auth/AuthRedirect";
 import DoctorLayout from "./components/layout/DoctorLayout";
 import PatientLayout from "./components/layout/PatientLayout";
 
+
+import DiagnosticSelectionPage from './pages/DiagnosticSelectionPage';
+import BrainDiagnosticPage from './pages/BrainDiagnosticPage';
 function App() {
   return (
     <Routes>
+
+
+      {/* Diagnostic routes with authentication */}
+      <Route
+        path="/diagnostic"
+        element={
+          <ProtectedRoute userType="patient">
+            <PatientLayout />
+          </ProtectedRoute>
+        }
+      >
+        <Route index element={<DiagnosticSelectionPage />} />
+        <Route path="brain" element={<BrainDiagnosticPage />} />
+      </Route>
+
+
+
       {/* Public routes */}
       <Route path="/" element={<HomePage />} />
       <Route path="/login" element={<Login />} />

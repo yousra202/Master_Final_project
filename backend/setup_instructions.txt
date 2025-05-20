@@ -1,17 +1,496 @@
-# Database Setup Instructions
+"""
+Frontend Integration for Brain Tumor Detection
 
-1. Start XAMPP and ensure MySQL service is running
-2. Create a new database named 'medical_portal'
-3. Run the following Django commands to set up the database:
+This file contains the code for implementing the React frontend components
+for the brain tumor detection feature as outlined in the integration plan.
+"""
 
-# Create migrations
-python manage.py makemigrations
+# Step 1: Create Brain Tumor Detection Service
+"""
+// frontend/src/services/brainDiagnosticService.js
+import axios from 'axios';
 
-# Apply migrations
-python manage.py migrate
+const API_URL = 'http://localhost:8000/api/brain-scans/';
 
-# Create a superuser (optional)
-python manage.py createsuperuser
+export const uploadBrainScan = async (formData) => {
+  try {
+    const response = await axios.post(`${API_URL}diagnose/`, formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
 
-# Run the development server
-python manage.py runserver
+export const getBrainScanHistory = async (patientId) => {
+  try {
+    const response = await axios.get(API_URL, {
+      params: { patient: patientId },
+    });
+    return response.data;
+  } catch (error) {
+    throw error;
+  }
+};
+"""
+
+# Step 2: Create Diagnostic Selection Component
+"""
+// frontend/src/components/diagnostics/DiagnosticSelection.js
+import React from 'react';
+import { Link } from 'react-router-dom';
+
+const DiagnosticSelection = () => {
+  return (
+    <div className="diagnostic-selection">
+      <h2>Choisissez un type de diagnostic</h2>
+      <div className="diagnostic-options">
+        <Link to="/diagnostic/brain" className="diagnostic-option">
+          <div className="diagnostic-icon">
+            <i className="fas fa-brain"></i>
+          </div>
+          <h3>Diagnostic du cerveau</h3>
+          <p>Détection de tumeurs cérébrales à partir d'images IRM</p>
+        </Link>
+        {/* Other diagnostic options can be added here in the future */}
+      </div>
+    </div>
+  );
+};
+
+export default DiagnosticSelection;
+"""
+
+# Step 3: Create Brain Scan Upload Component
+"""
+// frontend/src/components/diagnostics/BrainScanUpload.js
+import React, { useState } from 'react';
+import { uploadBrainScan } from '../../services/brainDiagnosticService';
+
+const BrainScanUpload = () => {
+  const [file, setFile] = useState(null);
+  const [preview, setPreview] = useState(null);
+  const [loading, setLoading] = useState(false);
+  const [result, setResult] = useState(null);
+  const [error, setError] = useState(null);
+
+  const handleFileChange = (e) => {
+    const selectedFile = e.target.files[0];
+    if (selectedFile) {
+      setFile(selectedFile);
+      setPreview(URL.createObjectURL(selectedFile));
+      setResult(null);
+      setError(null);
+    }
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    if (!file) {
+      setError('Veuillez sélectionner une image IRM');
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const formData = new FormData();
+      formData.append('image', file);
+      
+      const response = await uploadBrainScan(formData);
+      setResult(response);
+    } catch (err) {
+      setError('Une erreur est survenue lors du diagnostic. Veuillez réessayer.');
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="brain-scan-upload">
+      <h2>Diagnostic de tumeur cérébrale</h2>
+      <p>Téléchargez une image IRM du cerveau pour obtenir un diagnostic</p>
+      
+      <form onSubmit={handleSubmit}>
+        <div className="upload-area">
+          <input
+            type="file"
+            id="brain-scan"
+            accept="image/*"
+            onChange={handleFileChange}
+            className="file-input"
+          />
+          <label htmlFor="brain-scan" className="file-label">
+            {preview ? (
+              <img src={preview} alt="Preview" className="image-preview" />
+            ) : (
+              <>
+                <i className="fas fa-upload"></i>
+                <span>Sélectionner une image IRM</span>
+              </>
+            )}
+          </label>
+        </div>
+        
+        {error && <div className="error-message">{error}</div>}
+        
+        <button 
+          type="submit" 
+          className="submit-button" 
+          disabled={!file || loading}
+        >
+          {loading ? 'Analyse en cours...' : 'Analyser l\'image'}
+        </button>
+      </form>
+      
+      {result && (
+        <div className="result-container">
+          <h3>Résultat du diagnostic</h3>
+          <div className={`result ${result.result.includes('No') ? 'no-tumor' : 'tumor-detected'}`}>
+            <p className="result-text">{result.result}</p>
+            <p className="confidence">Confiance: {result.confidence.toFixed(2)}%</p>
+          </div>
+          <div className="result-image">
+            <img src={result.image_url} alt="Analyzed brain scan" />
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+export default BrainScanUpload;
+"""
+
+# Step 4: Create Results Display Component
+"""
+// frontend/src/components/diagnostics/DiagnosticResult.js
+import React from 'react';
+
+const DiagnosticResult = ({ result }) => {
+  if (!result) return null;
+  
+  const { result: diagnosis, confidence, image_url } = result;
+  const isTumor = !diagnosis.includes('No');
+  
+  return (
+    <div className="diagnostic-result">
+      <h3>Résultat du diagnostic</h3>
+      <div className={`result-card ${isTumor ? 'tumor' : 'no-tumor'}`}>
+        <div className="result-icon">
+          <i className={`fas ${isTumor ? 'fa-exclamation-triangle' : 'fa-check-circle'}`}></i>
+        </div>
+        <div className="result-details">
+          <h4>{diagnosis}</h4>
+          <p>Confiance: {confidence.toFixed(2)}%</p>
+          {isTumor && (
+            <p className="recommendation">
+              Nous vous recommandons de consulter un médecin dès que possible.
+            </p>
+          )}
+        </div>
+      </div>
+      <div className="analyzed-image">
+        <h4>Image analysée</h4>
+        <img src={image_url} alt="Analyzed brain scan" />
+      </div>
+    </div>
+  );
+};
+
+export default DiagnosticResult;
+"""
+
+# Step 5: Create Diagnostic Selection Page
+"""
+// frontend/src/pages/DiagnosticSelectionPage.js
+import React from 'react';
+import DiagnosticSelection from '../components/diagnostics/DiagnosticSelection';
+
+const DiagnosticSelectionPage = () => {
+  return (
+    <div className="page diagnostic-selection-page">
+      <div className="container">
+        <h1>Diagnostic en ligne</h1>
+        <p className="page-description">
+          Sélectionnez le type de diagnostic que vous souhaitez effectuer.
+        </p>
+        <DiagnosticSelection />
+      </div>
+    </div>
+  );
+};
+
+export default DiagnosticSelectionPage;
+"""
+
+# Step 6: Create Brain Diagnostic Page
+"""
+// frontend/src/pages/BrainDiagnosticPage.js
+import React from 'react';
+import BrainScanUpload from '../components/diagnostics/BrainScanUpload';
+
+const BrainDiagnosticPage = () => {
+  return (
+    <div className="page brain-diagnostic-page">
+      <div className="container">
+        <h1>Diagnostic de tumeur cérébrale</h1>
+        <p className="page-description">
+          Notre système d'intelligence artificielle peut analyser les images IRM 
+          du cerveau pour détecter la présence de tumeurs.
+        </p>
+        <div className="disclaimer">
+          <p>
+            <strong>Avertissement:</strong> Ce service est fourni à titre informatif 
+            uniquement et ne remplace pas l'avis d'un professionnel de la santé. 
+            Consultez toujours un médecin pour un diagnostic médical officiel.
+          </p>
+        </div>
+        <BrainScanUpload />
+      </div>
+    </div>
+  );
+};
+
+export default BrainDiagnosticPage;
+"""
+
+# Step 7: Update Routes in App.js
+"""
+// Update frontend/src/App.js to include the new routes
+import React from 'react';
+import { BrowserRouter as Router, Route, Switch } from 'react-router-dom';
+// Import existing components
+import DiagnosticSelectionPage from './pages/DiagnosticSelectionPage';
+import BrainDiagnosticPage from './pages/BrainDiagnosticPage';
+
+function App() {
+  return (
+    <Router>
+      <div className="App">
+        <Header />
+        <main>
+          <Switch>
+            {/* Existing routes */}
+            <Route path="/diagnostic" exact component={DiagnosticSelectionPage} />
+            <Route path="/diagnostic/brain" component={BrainDiagnosticPage} />
+            {/* Other routes */}
+          </Switch>
+        </main>
+        <Footer />
+      </div>
+    </Router>
+  );
+}
+
+export default App;
+"""
+
+# Step 8: Update Home Page Component
+"""
+// Modify the existing home page component to link to the diagnostic feature
+// In the Home component where the feature card exists
+<div className="feature-card" onClick={() => history.push('/diagnostic')}>
+  <div className="feature-icon">
+    <i className="fas fa-file-medical"></i>
+  </div>
+  <h3>Diagnostic en ligne</h3>
+  <p>Envoyez vos documents médicaux et obtenez un diagnostic à distance</p>
+</div>
+"""
+
+# Step 9: Add CSS Styles
+"""
+/* frontend/src/styles/diagnostics.css */
+/* Diagnostic Selection Styles */
+.diagnostic-selection {
+  margin: 2rem 0;
+}
+
+.diagnostic-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2rem;
+  margin-top: 2rem;
+}
+
+.diagnostic-option {
+  flex: 1;
+  min-width: 250px;
+  padding: 2rem;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+  text-align: center;
+  text-decoration: none;
+  color: inherit;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.diagnostic-option:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 15px rgba(0, 0, 0, 0.1);
+}
+
+.diagnostic-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  color: #4a6bff;
+}
+
+/* Brain Scan Upload Styles */
+.brain-scan-upload {
+  margin: 2rem 0;
+}
+
+.upload-area {
+  margin: 2rem 0;
+}
+
+.file-input {
+  display: none;
+}
+
+.file-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 300px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.file-label:hover {
+  border-color: #4a6bff;
+}
+
+.image-preview {
+  max-width: 100%;
+  max-height: 280px;
+  border-radius: 4px;
+}
+
+.submit-button {
+  display: block;
+  width: 100%;
+  padding: 1rem;
+  background-color: #4a6bff;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.submit-button:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+}
+
+.error-message {
+  color: #dc3545;
+  margin: 1rem 0;
+}
+
+/* Result Styles */
+.result-container {
+  margin-top: 2rem;
+  padding: 2rem;
+  border-radius: 8px;
+  background-color: #f8f9fa;
+}
+
+.result {
+  padding: 1rem;
+  border-radius: 4px;
+  margin-bottom: 1rem;
+}
+
+.no-tumor {
+  background-color: #d4edda;
+  color: #155724;
+}
+
+.tumor-detected {
+  background-color: #f8d7da;
+  color: #721c24;
+}
+
+.result-text {
+  font-size: 1.2rem;
+  font-weight: bold;
+}
+
+.confidence {
+  margin-top: 0.5rem;
+}
+
+.result-image {
+  margin-top: 1rem;
+}
+
+.result-image img {
+  max-width: 100%;
+  border-radius: 4px;
+}
+
+/* Diagnostic Result Component Styles */
+.diagnostic-result {
+  margin-top: 2rem;
+}
+
+.result-card {
+  display: flex;
+  padding: 1.5rem;
+  border-radius: 8px;
+  margin-bottom: 1.5rem;
+}
+
+.result-icon {
+  font-size: 2.5rem;
+  margin-right: 1.5rem;
+}
+
+.result-details {
+  flex: 1;
+}
+
+.recommendation {
+  margin-top: 1rem;
+  font-weight: bold;
+}
+
+.analyzed-image {
+  margin-top: 1.5rem;
+}
+
+.analyzed-image img {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-top: 0.5rem;
+}
+"""
+
+# Step 10: Import the styles in frontend/src/index.js
+"""
+// In frontend/src/index.js or your main CSS file
+import './styles/diagnostics.css';
+"""
+
+# Implementation Notes:
+"""
+1. The implementation follows React best practices
+2. Components are organized in a modular way for maintainability
+3. The UI is designed to be user-friendly and responsive
+4. Error handling is implemented for all user interactions
+5. The components are styled to match the existing application design
+6. The feature is integrated with the existing routing system
+"""
