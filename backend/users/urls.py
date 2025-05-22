@@ -20,6 +20,7 @@ from .views import (
     PrescriptionView,
     ReviewView
 )
+from .search_views import SearchSuggestionsView, SearchResultsView
 
 urlpatterns = [
     # Authentication routes
@@ -54,6 +55,10 @@ urlpatterns = [
     path('admin/create/', CreateAdminView.as_view(), name='create-admin'),
     path('admin/list/', AdminListView.as_view(), name='admin-list'),
     path('admin/logs/', ActivityLogView.as_view(), name='activity-logs'),
+    
+    # Search routes
+    path('search/suggestions/', SearchSuggestionsView.as_view(), name='search-suggestions'),
+    path('search/results/', SearchResultsView.as_view(), name='search-results'),
     
     # Test route
     path('test/', DoctorListView.as_view(), name='test-view'),
